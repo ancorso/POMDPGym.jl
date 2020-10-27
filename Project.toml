@@ -1,0 +1,4 @@
+name = "POMDPGym"
+uuid = "23110f14-cb49-4285-84b1-33ab57423405"
+authors = ["Anthony Corso <anthonycorso92@gmail.com>"]
+version = "0.1.0"
