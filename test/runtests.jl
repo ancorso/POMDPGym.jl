@@ -31,7 +31,13 @@ sp, o, r = gen(mdp_nopix, mdp_nopix.env.state, 1)
 
 # Do 1 episode
 h = simulate(HistoryRecorder(), mdp_nopix, RandomPolicy(mdp_nopix))
-@test isterminal(mdp, mdp.env.state)
+@test isterminal(mdp_nopix, mdp_nopix.env.state)
+
+# Test out prescribed actions
+mdp = GymPOMDP(:Pendulum, pixel_observations = true, actions = [-1., 1.])
+@test mdp.actions == [-1., 1.]
+h = simulate(HistoryRecorder(), mdp, RandomPolicy(mdp))
+close(mdp.env)
 
 
 
