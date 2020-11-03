@@ -43,6 +43,8 @@ module POMDPGym
         r, sp = step!(mdp.env, a_py)
         if mdp.pixel_observations
             o = isnothing(mdp.special_render) ? OpenAIGym.render(mdp.env, mode = :rgb_array) : mdp.special_render(sp)
+        else
+            o = sp
         end
         return (sp=sp, o=o, r=r)
     end
