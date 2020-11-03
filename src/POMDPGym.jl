@@ -15,16 +15,18 @@ module POMDPGym
         pixel_observations::Bool # Whether or not to use an image as the observation
         γ::Float64 # Discount factor
         actions::Vector{A} # List of actions (Discrete only for now)
+        special_render # Function for rendering image (takes in env state), nothing if want OpenAI render function
     end
     
-    function GymPOMDP(environment; version = :v0, pixel_observations = false, γ = 0.99, actions = nothing, kwargs...)
+    function GymPOMDP(environment; version = :v0, pixel_observations = false, 
+                        γ = 0.99, actions = nothing, special_render = nothing, kwargs...)
         env = GymEnv(environment, version, kwargs...)
         s0 = reset!(env)
         if isnothing(actions)
             a = OpenAIGym.actions(env, s0)
             a isa LearnBase.DiscreteSet{UnitRange{Int64}} ? (actions = collect(1:length(a))) : error("GymPOMDP Currently only works with discrete action spaces. Got: $(typeof(a))")
         end
-        GymPOMDP(env, pixel_observations, γ, actions)
+        GymPOMDP(env, pixel_observations, γ, actions, special_render)
     end
     
     POMDPs.initialstate(mdp::GymPOMDP, rng::AbstractRNG = Random.GLOBAL_RNG)  = ImplicitDistribution((rng) -> reset!(mdp.env))
@@ -39,7 +41,9 @@ module POMDPGym
         a_py = (a isa Int) ? a - 1 : [a] # Python indexes from 0
         println(a_py)
         r, sp = step!(mdp.env, a_py)
-        o = mdp.pixel_observations ? OpenAIGym.render(mdp.env, mode = :rgb_array) : sp
+        if mdp.pixel_observations
+            o = isnothing(mdp.special_render) ? OpenAIGym.render(mdp.env, mode = :rgb_array) : mdp.special_render(sp)
+        end
         return (sp=sp, o=o, r=r)
     end
 end # module

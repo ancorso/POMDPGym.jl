@@ -39,5 +39,12 @@ mdp = GymPOMDP(:Pendulum, pixel_observations = true, actions = [-1., 1.])
 h = simulate(HistoryRecorder(), mdp, RandomPolicy(mdp))
 close(mdp.env)
 
+# Test prescribed render function
+my_render(sp) = ones(20,20)
+mdp = GymPOMDP(:Pendulum, pixel_observations = true, actions = [-1., 1.], special_render = my_render)
+sp, o, r = gen(mdp, mdp.env.state, 1.)
+close(mdp.env)
+@test size(o) == (20,20)
+
 
 
