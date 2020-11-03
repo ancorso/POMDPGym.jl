@@ -39,7 +39,6 @@ module POMDPGym
     
     function POMDPs.gen(mdp::GymPOMDP, s::S, a, rng::AbstractRNG = Random.GLOBAL_RNG)
         a_py = (a isa Int) ? a - 1 : [a] # Python indexes from 0
-        println(a_py)
         r, sp = step!(mdp.env, a_py)
         if mdp.pixel_observations
             o = isnothing(mdp.special_render) ? OpenAIGym.render(mdp.env, mode = :rgb_array) : mdp.special_render(sp)
