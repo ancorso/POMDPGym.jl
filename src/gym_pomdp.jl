@@ -17,7 +17,7 @@ function GymPOMDP(environment; version = :v0, pixel_observations = false,
     s0 = reset!(env)
     if isnothing(actions)
         a = OpenAIGym.actions(env, s0)
-        a isa LearnBase.DiscreteSet{UnitRange{Int64}} ? (actions = collect(1:length(a))) : error("GymPOMDP Currently only works with discrete action spaces. Got: $(typeof(a))")
+        actions = a isa LearnBase.DiscreteSet{UnitRange{Int64}} ? collect(1:length(a)) : [a.lo, a.hi]
     end
     GymPOMDP(env, pixel_observations, γ, actions, special_render, sign_reward, frame_stack, frame_stack_dim)
 end
@@ -35,7 +35,7 @@ POMDPs.discount(mdp::GymPOMDP) = mdp.γ
 
 function POMDPs.observation(mdp::GymPOMDP, s)
     if mdp.pixel_observations
-        o = isnothing(mdp.special_render) ? Float32.(render(mdp)) : mdp.special_render(s)
+        o = isnothing(mdp.special_render) ? permutedims(Float32.(channelview(render(mdp))), [2,3,1]) : mdp.special_render(s)
     else
         o = Float32.(s)
     end
@@ -43,6 +43,13 @@ function POMDPs.observation(mdp::GymPOMDP, s)
 end
 
 torgb(o) = collect(colorview(RGB, permutedims(reinterpret.(N0f8, o), [3,1,2])))
+
+function init_mujoco_render()
+    py"""
+    from mujoco_py import GlfwContext
+    GlfwContext(offscreen=True) 
+    """
+end
 
 function render(mdp::GymPOMDP, s, a = nothing)
     @assert s == mdp.env.state
@@ -55,7 +62,7 @@ stack_obs(mdp, os) = length(os) == 1 ? os[1] : cat(os..., dims = mdp.frame_stack
     
 function POMDPs.gen(mdp::GymPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)
     @assert s == mdp.env.state
-    a_py = (a isa Int) ? a - 1 : [a] # Python indexes from 0
+    a_py = (a isa Int) ? a - 1 : a # Python indexes from 0
     rtot, os, sp = 0, [], nothing
     for i=1:mdp.frame_stack
         r, sp = step!(mdp.env, a_py)

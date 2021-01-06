@@ -29,6 +29,7 @@ function POMDPs.gen(mdp::PendulumMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG
     θ, ω = s[1], s[2]
     dt, g, m, l = mdp.dt, mdp.g, mdp.m, mdp.l
 
+    a = a[1]
     a = clamp(a, -mdp.max_torque, mdp.max_torque)
     costs = angle_normalize(θ)^2 + 0.1 * ω^2 + 0.001 * a^2
 
@@ -45,8 +46,8 @@ function POMDPs.observation(mdp::PendulumMDP, s)
     Deterministic(Float32.(o))
 end
 
-function POMDPs.initialstate(mdp::PendulumMDP, rng::AbstractRNG = Random.GLOBAL_RNG)
-     Deterministic([rand(rng, mdp.θ0), rand(rng, mdp.ω0)])
+function POMDPs.initialstate(mdp::PendulumMDP)
+    ImplicitDistribution((rng) -> [rand(rng, mdp.θ0), rand(rng, mdp.ω0)])
 end
 
 POMDPs.initialobs(mdp::PendulumMDP, s) = observation(mdp, s)
