@@ -17,11 +17,11 @@
 end
 
 InvertedPendulumMDP(failure_thresh = deg2rad(20), 
-                    θ0 = Distributions.Uniform(-mdp.failure_thresh/2., mdp.failure_thresh/2.),
+                    θ0 = Distributions.Uniform(-failure_thresh/2., failure_thresh/2.),
                     ω0 = Distributions.Uniform(-.1, .1),
                     Rstep = 1,
                     λcost = 1;
-                    kwargs...) = PendulumMDP(failure_thresh = failure_thresh, θ0 = θ0, ω0 = ω0, Rstep = Rstep, λcost = λcost, kwargs...)
+                    kwargs...) = PendulumMDP(failure_thresh = failure_thresh, θ0 = θ0, ω0 = ω0, Rstep = Rstep, λcost = λcost; kwargs...)
 
 angle_normalize(x) = mod((x+π), (2*π)) - π
 
