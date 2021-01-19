@@ -1,6 +1,8 @@
 function preproc_atari_frame(s)
-    v = sum(s .÷ UInt8(3) , dims = 3)[36:2:194, 1:2:end, :]
-    reshape(v, size(v)..., 1)
+    r1 = 36:2:194
+    r2 = 1:2:160
+    v = (s[r1, r2, 1] .+  s[r1, r2, 2] .+ s[r1, r2, 3]) .÷ UInt8(3)
+    reshape(v, size(v)..., 1, 1)
 end
 
 AtariPOMDP(environment; version = :v0, frame_stack = 4) = GymPOMDP(environment, version = version, frame_stack = frame_stack, pixel_observations = true, special_render = preproc_atari_frame, sign_reward = true)
