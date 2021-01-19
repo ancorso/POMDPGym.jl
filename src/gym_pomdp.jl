@@ -11,15 +11,19 @@ struct GymPOMDP{S, A} <: POMDP{S, A, O}
     frame_stack_dim
 end
 
-function GymPOMDP(environment; version = :v0, pixel_observations = false, 
-                    γ = 0.99, actions = nothing, special_render = nothing, sign_reward = false, frame_stack = 1, frame_stack_dim = 3,  kwargs...)
-    env = GymEnv(environment, version, kwargs...)
+function GymPOMDP(env::GymEnv; pixel_observations = false, 
+                    γ = 0.99, actions = nothing, special_render = nothing, sign_reward = false, frame_stack = 1, frame_stack_dim = 3)
     s0 = reset!(env)
     if isnothing(actions)
         a = OpenAIGym.actions(env, s0)
         actions = a isa LearnBase.DiscreteSet{UnitRange{Int64}} ? collect(1:length(a)) : [a.lo, a.hi]
     end
     GymPOMDP(env, pixel_observations, γ, actions, special_render, sign_reward, frame_stack, frame_stack_dim)
+end
+
+function GymPOMDP(environment::Symbol; version::Symbol = :v0, kwargs...)
+    env = GymEnv(environment, version)
+    GymPOMDP(env; kwargs...)
 end
 
 function POMDPs.initialstate(mdp::GymPOMDP, rng::AbstractRNG = Random.GLOBAL_RNG)
