@@ -57,6 +57,7 @@ POMDPs.actions(mdp::PendulumMDP) = mdp.actions
 POMDPs.isterminal(mdp::PendulumMDP, s) = !isnothing(mdp.failure_thresh) && abs(s[1]) > mdp.failure_thresh
 POMDPs.discount(mdp::PendulumMDP) = mdp.γ
 
+render(mdp::PendulumMDP, s, a::AbstractArray) = render(mdp, s, a...)
 function render(mdp::PendulumMDP, s, a = 0)
     θ = s[1] + π/2.
     point_array = [(0.5,0.5), (0.5 + 0.3*cos(θ), 0.5 - 0.3*sin(θ))]
@@ -86,8 +87,7 @@ function render(mdp::PendulumMDP, s, a = 0)
         (context(), line(point_array), stroke("black"), linewidth(1mm)),
         (context(), rectangle(), fill("white"))
     )
-    tmpfilename = "/tmp/out.png"
+    tmpfilename = tempname()
     img |> PNG(tmpfilename, 10cm, 10cm)
     load(tmpfilename)
 end
-
