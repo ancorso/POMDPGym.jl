@@ -15,8 +15,7 @@ function GymPOMDP(env::GymEnv; pixel_observations = false,
                     γ = 0.99, actions = nothing, special_render = nothing, sign_reward = false, frame_stack = 1, frame_stack_dim = 3)
     s0 = reset!(env)
     if isnothing(actions)
-        a = OpenAIGym.actions(env, s0)
-        actions = a isa LearnBase.DiscreteSet{UnitRange{Int64}} ? collect(1:length(a)) : [a.lo, a.hi]
+        actions = actionset(env.pyenv.action_space)
     end
     GymPOMDP(env, pixel_observations, γ, actions, special_render, sign_reward, frame_stack, frame_stack_dim)
 end
@@ -60,7 +59,7 @@ function render(mdp::GymPOMDP, s, a = nothing)
     render(mdp)
 end
 
-render(mdp::GymPOMDP) = torgb(OpenAIGym.render(mdp.env, mode = :rgb_array))
+render(mdp::GymPOMDP) = torgb(render(mdp.env, mode = :rgb_array))
 
 stack_obs(mdp, os) = length(os) == 1 ? os[1] : cat(os..., dims = mdp.frame_stack_dim)
     

@@ -1,10 +1,10 @@
 module POMDPGym
     using POMDPs 
-    using OpenAIGym
     using POMDPModels
     import POMDPModelTools:render
     using POMDPModelTools
     using PyCall
+    import PyCall: hasproperty
     using Parameters
     using Random
     using ImageCore
@@ -13,6 +13,8 @@ module POMDPGym
     using Distributions
     import Cairo
     using Compose
+    
+    include("pycalls.jl")
     
     export GymPOMDP, render, init_mujoco_render
     include("gym_pomdp.jl")
