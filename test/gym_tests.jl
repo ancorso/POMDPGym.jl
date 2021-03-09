@@ -39,8 +39,9 @@ h = simulate(HistoryRecorder(), mdp_nopix, RandomPolicy(mdp_nopix))
 # Test out prescribed actions
 mdp = GymPOMDP(:Pendulum, pixel_observations = true, actions = [[-1.], [1.]])
 @test mdp.actions == [[-1.], [1.]]
-h = simulate(HistoryRecorder(), mdp, RandomPolicy(mdp))
+h = simulate(HistoryRecorder(max_steps = 200), mdp, RandomPolicy(mdp))
 close(mdp.env)
+@test !isterminal(mdp, mdp.env.state)
 
 # Test prescribed render function
 my_render(sp) = ones(20,20)

@@ -33,7 +33,10 @@ POMDPs.initialobs(mdp::GymPOMDP, s) = Deterministic(stack_obs(mdp, [rand(observa
 POMDPs.actions(mdp::GymPOMDP) = mdp.actions
 POMDPs.actionindex(mdp::GymPOMDP, a) = a
 
-POMDPs.isterminal(mdp::GymPOMDP, s) = mdp.env.done
+function POMDPs.isterminal(mdp::GymPOMDP, s)
+    mdp.env.pyenv._elapsed_steps >= mdp.env.pyenv._max_episode_steps && return false
+    mdp.env.done
+end
 POMDPs.discount(mdp::GymPOMDP) = mdp.γ
 
 function POMDPs.observation(mdp::GymPOMDP, s)
