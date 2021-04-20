@@ -13,6 +13,8 @@ module POMDPGym
     using Distributions
     import Cairo
     using Compose
+    using StaticArrays
+    using LinearAlgebra
     
     include("pycalls.jl")
     
@@ -22,10 +24,11 @@ module POMDPGym
     export torgb, preproc_atari_frame, AtariPOMDP
     include("atari_helpers.jl")
     
-    export GridWorldMDP, LavaWorldMDP, PendulumMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava
+    export GridWorldMDP, LavaWorldMDP, PendulumMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4
     include("extra/gridworld.jl")
     include("extra/lavaworld.jl")
     include("extra/pendulum.jl")
     include("extra/continuous_bandit.jl")
+    include("extra/continuumworld.jl")
 end # module
 

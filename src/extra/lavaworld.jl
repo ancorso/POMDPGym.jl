@@ -6,7 +6,9 @@
     randomize_lava::Bool = true # Whether or not to randomize the lava on each reset
     lava_penalty::Float64 = -1. # The reward for landing in lava
     goal_reward::Float64 = 1. # The reward for landing in the goal state
+    observation_type = :all # if :all, we get the full grid over 3 channels
     rng::AbstractRNG = Random.GLOBAL_RNG
+    initial_state = :random
 end
 
 function LavaWorldMDP(;size = (7, 5), tprob = 1.0, discount = 0.95, rewards = nothing, num_lava_tiles::Int = 1,
@@ -15,15 +17,19 @@ function LavaWorldMDP(;size = (7, 5), tprob = 1.0, discount = 0.95, rewards = no
                         randomize_lava::Bool = true,
                         lava_penalty::Float64 = -1.,
                         goal_reward::Float64 = 1.,
+                        observation_type = :all,
+                        initial_state = :random,
                         rng::AbstractRNG = Random.GLOBAL_RNG)
-    mdp = LavaWorld(gridworld = SimpleGridWorld(size = size, tprob = tprob, discount = discount), 
+         mdp = LavaWorld(gridworld = SimpleGridWorld(size = size, tprob = tprob, discount = discount), 
             num_lava_tiles = num_lava_tiles, 
             possible_lava_squares = possible_lava_squares, 
             goal = goal, 
             randomize_lava = randomize_lava,
             lava_penalty = lava_penalty, 
             goal_reward = goal_reward, 
-            rng = rng)
+            observation_type = observation_type,
+            rng = rng,
+            initial_state = initial_state)
     update_lava!(mdp)
     mdp
 end
@@ -63,13 +69,17 @@ function POMDPs.initialstate(mdp::LavaWorld)
     mdp.randomize_lava && update_lava!(mdp)
     
     # return Deterministic(GWPos(1,5))
-    function istate(rng::AbstractRNG)
-        while true
-            x, y = rand(rng, 1:mdp.gridworld.size[1]), rand(rng, 1:mdp.gridworld.size[2])
-            !(GWPos(x,y) in mdp.gridworld.terminate_from) && return GWPos(x,y)
+    if mdp.initial_state == :random
+        function istate(rng::AbstractRNG)
+            while true
+                x, y = rand(rng, 1:mdp.gridworld.size[1]), rand(rng, 1:mdp.gridworld.size[2])
+                !(GWPos(x,y) in mdp.gridworld.terminate_from) && return GWPos(x,y)
+            end
         end
+        return ImplicitDistribution(istate)
+    else
+        return Deterministic(mdp.initial_state)
     end
-    return ImplicitDistribution(istate)
 end 
 
 POMDPs.actions(mdp::LavaWorld) = POMDPs.actions(mdp.gridworld)
@@ -79,16 +89,26 @@ POMDPs.isterminal(mdp::LavaWorld, s) = isterminal(mdp.gridworld, s)
 POMDPs.discount(mdp::LavaWorld) = discount(mdp.gridworld)
             
 function POMDPs.convert_s(::Type{V}, s::GWPos, mdp::LavaWorld) where {V<:AbstractArray}
-    svec = zeros(Float32, mdp.gridworld.size..., 3, 1)
-    !isterminal(mdp, s) && (svec[s[1], s[2], 3] = 1.)
-    for p in states(mdp)
-        POMDPs.reward(mdp, p) < 0 && (svec[p[1], p[2], 2] = 1.)
-        POMDPs.reward(mdp, p) > 0 && (svec[p[1], p[2], 1] = 1.)
+    if mdp.observation_type == :all
+        svec = zeros(Float32, mdp.gridworld.size..., 3, 1)
+        !isterminal(mdp, s) && (svec[s[1], s[2], 3] = 1.)
+        for p in states(mdp)
+            POMDPs.reward(mdp, p) < 0 && (svec[p[1], p[2], 2] = 1.)
+            POMDPs.reward(mdp, p) > 0 && (svec[p[1], p[2], 1] = 1.)
+        end
+        return svec
+    else
+        return [s...]
     end
-    svec
 end
 
-POMDPs.convert_s(::Type{GWPos}, v::V, mdp::LavaWorld) where {V<:AbstractArray} = GWPos(findfirst(reshape(v, mdp.gridworld.size..., :)[:,:,3] .== 1.0).I)
+function POMDPs.convert_s(::Type{GWPos}, v::V, mdp::LavaWorld) where {V<:AbstractArray} 
+    if mdp.observation_type == :all
+        return GWPos(findfirst(reshape(v, mdp.gridworld.size..., :)[:,:,3] .== 1.0).I)
+    else
+        return v
+    end
+end
 
 goal(mdp::LavaWorld, s) = GWPos(findfirst(reshape(s, mdp.gridworld.size..., :)[:,:,1] .== 1.0).I)
 
