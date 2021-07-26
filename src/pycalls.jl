@@ -122,6 +122,12 @@ function reset!(env::GymEnv)
     return env.state
 end
 
+function PyObject2Dict(obj)
+	ks = collect(obj.keys())
+	Dict(k=>obj.get(k) for k in ks)
+end
+	
+
 """
     step!(env::GymEnv, a)
 take a step in the enviroment
@@ -136,7 +142,7 @@ function step!(env::GymEnv, a)
     convert_state!(env)
 
     env.total_reward += r
-    return (r, env.state)
+    return (r, env.state, PyObject2Dict(env.info))
 end
 
 @inline step!(env::GymEnv, s, a) = step!(env, a)

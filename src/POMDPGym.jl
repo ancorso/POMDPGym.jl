@@ -24,11 +24,13 @@ module POMDPGym
     export torgb, preproc_atari_frame, AtariPOMDP
     include("atari_helpers.jl")
     
-    export GridWorldMDP, LavaWorldMDP, PendulumMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4
+    export GridWorldMDP, LavaWorldMDP, PendulumMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4, LagrangeConstrainedPOMDP, RewardModPOMDP
     include("extra/gridworld.jl")
     include("extra/lavaworld.jl")
     include("extra/pendulum.jl")
     include("extra/continuous_bandit.jl")
     include("extra/continuumworld.jl")
+    include("extra/lagrange_constraints.jl")
+    include("extra/reward_mod.jl")
 end # module
 

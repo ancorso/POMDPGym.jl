@@ -34,7 +34,11 @@ POMDPs.actions(mdp::GymPOMDP) = mdp.actions
 POMDPs.actionindex(mdp::GymPOMDP, a) = a
 
 function POMDPs.isterminal(mdp::GymPOMDP, s)
-    mdp.env.pyenv._elapsed_steps >= mdp.env.pyenv._max_episode_steps && return false
+    try
+        mdp.env.pyenv._elapsed_steps >= mdp.env.pyenv._max_episode_steps && return false
+    catch
+        mdp.env.pyenv.num_steps >= mdp.env.pyenv.steps && return false
+    end
     mdp.env.done
 end
 POMDPs.discount(mdp::GymPOMDP) = mdp.γ
@@ -57,25 +61,36 @@ function init_mujoco_render()
     """
 end
 
-function render(mdp::GymPOMDP, s, a = nothing)
+function render(mdp::GymPOMDP, s, a = nothing; kwargs...)
     @assert s == mdp.env.state
-    render(mdp)
+    render(mdp; kwargs...)
 end
 
-render(mdp::GymPOMDP) = torgb(render(mdp.env, mode = :rgb_array))
+render(mdp::GymPOMDP; kwargs...) = torgb(render(mdp.env; kwargs...))
 
 stack_obs(mdp, os) = length(os) == 1 ? os[1] : cat(os..., dims = mdp.frame_stack_dim)
+
+function aggregate_info!(infos, info)
+    for k in keys(infos[1])
+        info[k] =  mean([i[k] for i in filter((x)->haskey(x, k), infos)])
+    end
+end
     
-function POMDPs.gen(mdp::GymPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)
+function POMDPs.gen(mdp::GymPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
     @assert s == mdp.env.state
     a_py = (a isa Int) ? a - 1 : a # Python indexes from 0
     rtot, os, sp = 0, [], nothing
+    infos = []
     for i=1:mdp.frame_stack
-        r, sp = step!(mdp.env, a_py)
+        r, sp, ret_info = step!(mdp.env, a_py)
         o = rand(rng, observation(mdp, sp))
         rtot += r
         push!(os, o)
+        push!(infos, ret_info)
     end
+    aggregate_info!(infos, info)
+
+    
     mdp.sign_reward && (rtot = sign(rtot))
     o = stack_obs(mdp, os)
     return (sp=sp, o=o, r=rtot)
