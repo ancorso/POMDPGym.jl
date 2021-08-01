@@ -3,7 +3,7 @@
     reward_model
 end
 
-POMDPs.initialstate(mdp::RewardModPOMDP, rng::AbstractRNG = Random.GLOBAL_RNG) = initialstate(mdp.pomdp, rng)
+POMDPs.initialstate(mdp::RewardModPOMDP) = initialstate(mdp.pomdp)
 POMDPs.initialobs(mdp::RewardModPOMDP, s) = initialobs(mdp.pomdp, s)
 
 POMDPs.actions(mdp::RewardModPOMDP) = actions(mdp.pomdp)

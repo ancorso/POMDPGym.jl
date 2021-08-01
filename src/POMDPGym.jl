@@ -32,5 +32,8 @@ module POMDPGym
     include("extra/continuumworld.jl")
     include("extra/lagrange_constraints.jl")
     include("extra/reward_mod.jl")
+    
+    export AdversarialMDP, AdditiveAdversarialMDP, disturbances, disturbanceindex
+    include("extra/adversarialmdp.jl")
 end # module
 

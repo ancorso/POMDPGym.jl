@@ -2,7 +2,7 @@ using POMDPGym, POMDPs, Test
 mdp = ContinuumWorldMDP()
 
 for i=1:1000
-    @test reward(mdp, rand(initialstate(mdp))) == 0
+    @test abs(reward(mdp, rand(initialstate(mdp)))) < 1
 end
 s = rand(initialstate(mdp))
 svec = convert_s(AbstractArray, s, mdp)

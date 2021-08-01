@@ -4,7 +4,7 @@
 end
 
 POMDPs.gen(mdp::ContinuousBanditMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG) = (sp = a[1], r = exp(-(a[1] - mdp.goal)^2 / mdp.σ))
-POMDPs.initialstate(mdp::ContinuousBanditMDP, rng::AbstractRNG = Random.GLOBAL_RNG) = Deterministic(0f0)
+POMDPs.initialstate(mdp::ContinuousBanditMDP) = Deterministic(0f0)
 POMDPs.isterminal(mdp::ContinuousBanditMDP, s) = true
 POMDPs.discount(mdp::ContinuousBanditMDP) = 0.99
 POMDPs.convert_s(::Type{V}, s::Float32, mdp::ContinuousBanditMDP) where {V<:AbstractArray} = [s]

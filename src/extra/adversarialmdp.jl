@@ -1,40 +1,26 @@
-struct AdversarialMDP
-    mdp
+abstract type AdversarialMDP{S,A} <: MDP{S,A} end
+
+struct AdditiveAdversarialMDP{S,A}  <: AdversarialMDP{S,A} 
+    mdp::MDP{S,A} 
+    x_distribution
 end
 
-POMDPs.initialstate(mdp::AdversarialMDP, rng::AbstractRNG = Random.GLOBAL_RNG) = initialstate(mdp.pomdp, rng)
-POMDPs.initialobs(mdp::LagrangeConstrainedPOMDP, s) = initialobs(mdp.pomdp, s)
+POMDPs.initialstate(mdp::AdditiveAdversarialMDP) = initialstate(mdp.mdp)
 
-POMDPs.actions(mdp::LagrangeConstrainedPOMDP) = actions(mdp.pomdp)
-POMDPs.actionindex(mdp::LagrangeConstrainedPOMDP, a) = actionindex(mdp.pomdp)
+POMDPs.actions(mdp::AdditiveAdversarialMDP) = actions(mdp.mdp)
+POMDPs.actionindex(mdp::AdditiveAdversarialMDP, a) = actionindex(mdp.mdp, a)
 
-function POMDPs.isterminal(mdp::LagrangeConstrainedPOMDP, s)
-    if mdp.terminate_next
-        mdp.terminate_next = false
-        return true
-    else
-        isterminal(mdp.pomdp, s)
-    end
-end
-POMDPs.discount(mdp::LagrangeConstrainedPOMDP) = discount(mdp.pomdp)
+disturbances(mdp::AdditiveAdversarialMDP) = actions(mdp.mdp)
+disturbanceindex(mdp::AdditiveAdversarialMDP, a) = actionindex(mdp.mdp, a)
 
-POMDPs.observation(mdp::LagrangeConstrainedPOMDP, s) = observation(mdp.pomdp, s)
+POMDPs.isterminal(mdp::AdditiveAdversarialMDP, s) = isterminal(mdp.mdp, s)
+POMDPs.discount(mdp::AdditiveAdversarialMDP) = discount(mdp.mdp)
 
+render(mdp::AdditiveAdversarialMDP, s, a = nothing; kwargs...) = render(mdp.mdp, s, a; kwargs...)
+render(mdp::AdditiveAdversarialMDP; kwargs...) = render(mdp.mdp; kwargs...)
 
-render(mdp::LagrangeConstrainedPOMDP, s, a = nothing; kwargs...) = render(mdp.pomdp, s, a; kwargs...)
-render(mdp::LagrangeConstrainedPOMDP; kwargs...) = render(mdp.pomdp; kwargs...)
-
-function POMDPs.gen(mdp::LagrangeConstrainedPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
-    sp, o, r = gen(mdp.pomdp, s, a, rng, info=info)
-    if haskey(info, "cost") && info["cost"] >0
-        r -= mdp.λ*info["cost"]
-        if mdp.terminate_on_violation
-            mdp.terminate_next = true
-        end
-    end
-    return (sp=sp, o=o, r=r)
-end
-
+POMDPs.gen(mdp::AdditiveAdversarialMDP, s, a, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...) = gen(mdp.mdp, s, a .+ x, rng; kwargs...)
+POMDPs.gen(mdp::AdditiveAdversarialMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...) = gen(mdp, s, a, rand(mdp.x_distribution), rng; kwargs...)
 
 
 

@@ -5,7 +5,7 @@
     terminate_next::Bool = false
 end
 
-POMDPs.initialstate(mdp::LagrangeConstrainedPOMDP, rng::AbstractRNG = Random.GLOBAL_RNG) = initialstate(mdp.pomdp, rng)
+POMDPs.initialstate(mdp::LagrangeConstrainedPOMDP) = initialstate(mdp.pomdp)
 POMDPs.initialobs(mdp::LagrangeConstrainedPOMDP, s) = initialobs(mdp.pomdp, s)
 
 POMDPs.actions(mdp::LagrangeConstrainedPOMDP) = actions(mdp.pomdp)

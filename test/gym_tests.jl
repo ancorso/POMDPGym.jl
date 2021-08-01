@@ -20,6 +20,9 @@ mdp = GymPOMDP(:CartPole, pixel_observations = true)
 @test discount(mdp) == mdp.γ
 
 # Test gen function 
+render(mdp.env)
+
+
 sp, o, r = gen(mdp, mdp.env.state, 1)
 close(mdp.env)
 @test length(sp) == 4

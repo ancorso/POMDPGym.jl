@@ -66,7 +66,7 @@ function render(mdp::GymPOMDP, s, a = nothing; kwargs...)
     render(mdp; kwargs...)
 end
 
-render(mdp::GymPOMDP; kwargs...) = torgb(render(mdp.env; kwargs...))
+render(mdp::GymPOMDP; kwargs...) = torgb(render(mdp.env; mode=:rgb_array, kwargs...))
 
 stack_obs(mdp, os) = length(os) == 1 ? os[1] : cat(os..., dims = mdp.frame_stack_dim)
 
