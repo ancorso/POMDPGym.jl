@@ -91,7 +91,7 @@ function POMDPs.observation(mdp::PendulumPOMDP, s)
 end
 
 function POMDPs.initialstate(mdp::PendulumPOMDP)
-    ImplicitDistribution((rng) -> [rand(rng, mdp.θ0), rand(rng, mdp.ω0)])
+    ImplicitDistribution((rng) -> Float32.([rand(rng, mdp.θ0), rand(rng, mdp.ω0)]))
 end
 
 POMDPs.initialobs(mdp::PendulumPOMDP, s) = observation(mdp, s)
@@ -134,7 +134,7 @@ function POMDPs.gen(mdp::PendulumMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG
 end
 
 function POMDPs.initialstate(mdp::PendulumMDP)
-    ImplicitDistribution((rng) -> [rand(rng, mdp.θ0), rand(rng, mdp.ω0)])
+    ImplicitDistribution((rng) -> Float32.([rand(rng, mdp.θ0), rand(rng, mdp.ω0)]))
 end
 
 POMDPs.actions(mdp::PendulumMDP) = mdp.actions
