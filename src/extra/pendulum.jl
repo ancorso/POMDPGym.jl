@@ -8,10 +8,10 @@ function pendulum_dynamics(env, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)
     costs = angle_normalize(θ)^2 + 0.1 * ω^2 + 0.001 * a^2
 
     ω = ω + (-3. * g / (2 * l) * sin(θ + π) + 3. * a / (m * l^2)) * dt
-    θ = θ + ω * dt
+    θ = angle_normalize(θ + ω * dt)
     ω = clamp(ω, -env.max_speed, env.max_speed)
 
-    sp = [θ, ω]
+    sp = Float32.([θ, ω])
     r = env.Rstep - env.λcost*costs
     return sp, r
 end
@@ -53,7 +53,7 @@ function render_pendulum(env, s, a)
 end
 
 ## POMDP implementation -- Allows for pixel observation
-@with_kw struct PendulumPOMDP <: POMDP{Array{Float64}, Float64, Array{Float32}}
+@with_kw struct PendulumPOMDP <: POMDP{Array{Float32}, Float64, Array{Float32}}
     failure_thresh::Union{Nothing, Float64} = nothing # if set, defines the operating range fo the pendulum. Episode terminates if abs(θ) is larger than this. 
     θ0 = Distributions.Uniform(-π, π) # Distribution to sample initial angular position
     ω0 = Distributions.Uniform(-1., 1.) # Distribution to sample initial angular velocity
@@ -91,7 +91,7 @@ function POMDPs.observation(mdp::PendulumPOMDP, s)
 end
 
 function POMDPs.initialstate(mdp::PendulumPOMDP)
-    ImplicitDistribution((rng) -> [rand(rng, mdp.θ0), rand(rng, mdp.ω0)])
+    ImplicitDistribution((rng) -> Float32.([rand(rng, mdp.θ0), rand(rng, mdp.ω0)]))
 end
 
 POMDPs.initialobs(mdp::PendulumPOMDP, s) = observation(mdp, s)
@@ -105,7 +105,7 @@ render(mdp::PendulumPOMDP, s, a::AbstractArray) = render(mdp, s, a...)
 render(mdp::PendulumPOMDP, s, a = 0) = render_pendulum(mdp, s, a)
 
 ## MDP formulation
-@with_kw struct PendulumMDP <: MDP{Array{Float64}, Array{Float32}}
+@with_kw struct PendulumMDP <: MDP{Array{Float32}, Array{Float32}}
     failure_thresh::Union{Nothing, Float64} = nothing # if set, defines the operating range fo the pendulum. Episode terminates if abs(θ) is larger than this. 
     θ0 = Distributions.Uniform(-π, π) # Distribution to sample initial angular position
     ω0 = Distributions.Uniform(-1., 1.) # Distribution to sample initial angular velocity
@@ -134,7 +134,7 @@ function POMDPs.gen(mdp::PendulumMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG
 end
 
 function POMDPs.initialstate(mdp::PendulumMDP)
-    ImplicitDistribution((rng) -> [rand(rng, mdp.θ0), rand(rng, mdp.ω0)])
+    ImplicitDistribution((rng) -> Float32.([rand(rng, mdp.θ0), rand(rng, mdp.ω0)]))
 end
 
 POMDPs.actions(mdp::PendulumMDP) = mdp.actions
