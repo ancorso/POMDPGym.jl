@@ -23,6 +23,8 @@ end
 position(s) = Vec2(s[1:2]...)
 velocity(s) = Vec2(s[3:4]...)
 
+isfailure(mdp, s) = !isterminal(mdp, s) && (terminal_reward(mdp, s) < 0 || out_of_bounds(mdp, s))
+
 function snap_to_boundary(mdp, s)
     s = max.(Vec4([mdp.range[1][1], mdp.range[2][1], -mdp.vmax, -mdp.vmax]), s)
     s = min.(Vec4([mdp.range[1][2], mdp.range[2][2], mdp.vmax, mdp.vmax]), s)
@@ -53,7 +55,7 @@ move_to_terminal(mdp, s) = out_of_bounds(mdp, s) || terminal_reward(mdp, s) != 0
 function POMDPs.gen(mdp::ContinuumWorldMDP, s, a, rng = Random.GLOBAL_RNG)
     s = Vec4(s[1:4])
     r = POMDPs.reward(mdp, s)
-    x = Vec2(rand(mdp.disturbance[1]), rand(mdp.disturbance[2]))
+    # x = Vec2(rand(mdp.disturbance[1]), rand(mdp.disturbance[2]))
     if move_to_terminal(mdp, s)
         sp = Vec4([-10.,-10.,-10.,-10.]) # terminal
     else
@@ -74,7 +76,9 @@ function POMDPs.reward(mdp::ContinuumWorldMDP, s)
     pos = position(s)
     vel = velocity(s)
     for (k,v) in mdp.rewards
-        r += -0.01*v*norm(pos .- k.center)
+        if v>0
+            r += -0.01*v*norm(pos .- k.center)
+        end
     end
     return r
 end

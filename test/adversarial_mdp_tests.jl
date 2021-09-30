@@ -19,5 +19,5 @@ sp_2,r_2 = gen(adv_mdp.mdp, s, [0,0])
 @test all(sp .≈ sp_2)
 @test r ≈ r_2
 
-gen(adv_mdp, s, [0,0])
+gen(adv_mdp, s, [0.,0.])
 

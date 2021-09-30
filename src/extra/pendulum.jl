@@ -1,18 +1,31 @@
 # Common functions for dynamics and rendering of pendulums
 function pendulum_dynamics(env, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)
+    # Deal with terminal states
+    # println("failur thresh: ", env.failure_thresh, " val: ", abs(s[1]))
+    if (isnothing(env.failure_thresh) ?  false : abs(s[1]) > env.failure_thresh)
+        # println("here")
+        return fill(-100, size(s)), 0
+    elseif env.include_time_in_state && (s[3] > env.maxT || s[3] ≈ env.maxT)
+        return fill(100, size(s)), 0
+    end
+        
     θ, ω = s[1], s[2]
     dt, g, m, l = env.dt, env.g, env.m, env.l
 
     a = a[1]
     a = clamp(a, -env.max_torque, env.max_torque)
-    costs = angle_normalize(θ)^2 + 0.1 * ω^2 + 0.001 * a^2
+    costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + 0.001f0 * a^2
 
     ω = ω + (-3. * g / (2 * l) * sin(θ + π) + 3. * a / (m * l^2)) * dt
     θ = angle_normalize(θ + ω * dt)
     ω = clamp(ω, -env.max_speed, env.max_speed)
 
-    sp = Float32.([θ, ω])
-    r = env.Rstep - env.λcost*costs
+    if env.include_time_in_state
+        sp = Float32.([θ, ω, s[3] + dt])
+    else
+        sp = Float32.([θ, ω])
+    end
+    r = Float32(env.Rstep - env.λcost*costs)
     return sp, r
 end
 
@@ -65,10 +78,12 @@ end
     g::Float64 = 10.
     m::Float64 = 1.
     l::Float64 = 1.
-    γ::Float64 = 0.99
+    γ::Float32 = 0.99
     actions::Vector{Float64} = [-1., 1.]
     pixel_observations::Bool = false
     render_fun::Union{Nothing, Function} = nothing
+    include_time_in_state = false
+    maxT = 99*dt
 end
 
 InvertedPendulumPOMDP(failure_thresh = deg2rad(20), 
@@ -97,8 +112,9 @@ end
 POMDPs.initialobs(mdp::PendulumPOMDP, s) = observation(mdp, s)
 
 POMDPs.actions(mdp::PendulumPOMDP) = mdp.actions
-
-POMDPs.isterminal(mdp::PendulumPOMDP, s) = !isnothing(mdp.failure_thresh) && abs(s[1]) > mdp.failure_thresh
+isfailure(mdp::PendulumPOMDP, s) = s[1] == -100
+# Terminate if there is a failure or if we exceed the maximum time (in the case that we are tracking such things)
+POMDPs.isterminal(mdp::PendulumPOMDP, s) = isfailure(mdp, s) || s[1] == 100
 POMDPs.discount(mdp::PendulumPOMDP) = mdp.γ
 
 render(mdp::PendulumPOMDP, s, a::AbstractArray) = render(mdp, s, a...)
@@ -117,8 +133,10 @@ render(mdp::PendulumPOMDP, s, a = 0) = render_pendulum(mdp, s, a)
     g::Float64 = 10.
     m::Float64 = 1.
     l::Float64 = 1.
-    γ::Float64 = 0.99
+    γ::Float32 = 0.99
     actions::Vector{Float64} = [-1., 1.]
+    include_time_in_state = false
+    maxT = 99*dt
 end
 
 InvertedPendulumMDP(failure_thresh = deg2rad(20), 
@@ -134,13 +152,22 @@ function POMDPs.gen(mdp::PendulumMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG
 end
 
 function POMDPs.initialstate(mdp::PendulumMDP)
-    ImplicitDistribution((rng) -> Float32.([rand(rng, mdp.θ0), rand(rng, mdp.ω0)]))
+    if mdp.include_time_in_state
+        ImplicitDistribution((rng) -> Float32.([rand(rng, mdp.θ0), rand(rng, mdp.ω0), 0f0]))
+    else
+        ImplicitDistribution((rng) -> Float32.([rand(rng, mdp.θ0), rand(rng, mdp.ω0)]))
+    end
 end
+
+
 
 POMDPs.actions(mdp::PendulumMDP) = mdp.actions
 
-POMDPs.isterminal(mdp::PendulumMDP, s) = !isnothing(mdp.failure_thresh) && abs(s[1]) > mdp.failure_thresh
+isfailure(mdp::PendulumMDP, s) = s[1] == -100
+# Terminate if there is a failure or if we exceed the maximum time (in the case that we are tracking such things)
+POMDPs.isterminal(mdp::PendulumMDP, s) = isfailure(mdp, s) || s[1] == 100
 POMDPs.discount(mdp::PendulumMDP) = mdp.γ
 
 render(mdp::PendulumMDP, s, a::AbstractArray) = render(mdp, s, a...)
 render(mdp::PendulumMDP, s, a = 0) = render_pendulum(mdp, s, a)
+

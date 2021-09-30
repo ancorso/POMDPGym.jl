@@ -1,6 +1,8 @@
 using POMDPGym, POMDPs, Test
 mdp = ContinuumWorldMDP()
 
+render(mdp)
+
 for i=1:1000
     @test abs(reward(mdp, rand(initialstate(mdp)))) < 1
 end
