@@ -1,9 +1,10 @@
 @with_kw struct LavaWorld <: MDP{GWPos, Symbol}
     gridworld::SimpleGridWorld # Underlying grdiworld
+    lava::Union{Symbol, Array{GWPos}} = [GWPos(1,1)] # Define the lava or select :random
     num_lava_tiles::Int = 1 # Number of squares of lava to use 
     possible_lava_squares::Union{Symbol, Array{GWPos}} = :all # Set of possible lava squares. :all means all of them can be used
     goal::Union{Symbol, GWPos} = GWPos(7,5) # can be :random
-    randomize_lava::Bool = true # Whether or not to randomize the lava on each reset
+    randomize_lava_on_reset::Bool = false # Whether or not to randomize the lava on each reset
     lava_penalty::Float64 = -1. # The reward for landing in lava
     goal_reward::Float64 = 1. # The reward for landing in the goal state
     observation_type = :all # if :all, we get the full grid over 3 channels
@@ -12,25 +13,26 @@
 end
 
 function LavaWorldMDP(;size = (7, 5), tprob = 1.0, discount = 0.95, rewards = nothing, num_lava_tiles::Int = 1,
-                        possible_lava_squares::Union{Symbol, Array{GWPos}} = :all,
+                        lava::Union{Symbol, Array{GWPos}} = [GWPos(1,1)],
                         goal::Union{Symbol, GWPos} = GWPos(7,5),
-                        randomize_lava::Bool = true,
+                        randomize_lava_on_reset::Bool = false,
+                        possible_lava_squares::Union{Symbol, Array{GWPos}} = :all,
                         lava_penalty::Float64 = -1.,
                         goal_reward::Float64 = 1.,
                         observation_type = :all,
                         initial_state = :random,
                         rng::AbstractRNG = Random.GLOBAL_RNG)
-         mdp = LavaWorld(gridworld = SimpleGridWorld(size = size, tprob = tprob, discount = discount), 
+         mdp = LavaWorld(gridworld = SimpleGridWorld(size = size, tprob = tprob, discount = discount, rewards = lava == :random ? Dict() : merge(Dict(p=>lava_penalty for p in lava), Dict(goal=>goal_reward))), 
             num_lava_tiles = num_lava_tiles, 
             possible_lava_squares = possible_lava_squares, 
             goal = goal, 
-            randomize_lava = randomize_lava,
+            randomize_lava_on_reset = randomize_lava_on_reset,
             lava_penalty = lava_penalty, 
             goal_reward = goal_reward, 
             observation_type = observation_type,
             rng = rng,
             initial_state = initial_state)
-    update_lava!(mdp)
+    lava == :random && randomize_lava!(mdp)
     mdp
 end
 
@@ -54,7 +56,7 @@ function random_lava(mdp::LavaWorld)
     rewards
 end
 
-function update_lava!(mdp::LavaWorld)
+function randomize_lava!(mdp::LavaWorld)
     g = mdp.gridworld
     [delete!(g.rewards, k) for k in keys(g.rewards)]
     [delete!(g.terminate_from, k) for k in g.terminate_from]
@@ -66,7 +68,7 @@ function update_lava!(mdp::LavaWorld)
 end
 
 function POMDPs.initialstate(mdp::LavaWorld)
-    mdp.randomize_lava && update_lava!(mdp)
+    mdp.randomize_lava_on_reset && randomize_lava!(mdp)
     
     # return Deterministic(GWPos(1,5))
     if mdp.initial_state == :random
@@ -82,7 +84,7 @@ function POMDPs.initialstate(mdp::LavaWorld)
     end
 end 
 
-POMDPs.actions(mdp::LavaWorld) = POMDPs.actions(mdp.gridworld)
+POMDPs.actions(mdp::LavaWorld) = [POMDPs.actions(mdp.gridworld)...]
 POMDPs.states(mdp::LavaWorld) = states(mdp.gridworld)
 POMDPs.reward(mdp::LavaWorld, s) = POMDPs.reward(mdp.gridworld, s)
 POMDPs.isterminal(mdp::LavaWorld, s) = isterminal(mdp.gridworld, s)
@@ -113,16 +115,19 @@ end
 goal(mdp::LavaWorld, s) = GWPos(findfirst(reshape(s, mdp.gridworld.size..., :)[:,:,1] .== 1.0).I)
 
 function gen_occupancy(buffer, mdp)
-    occupancy = Dict(s => 0 for s in states(mdp))
-    for i=1:length(buffer)
-        s = convert_s(GWPos, buffer[:s][:,i], mdp)
-        occupancy[s] += 1
+    N = length(buffer)
+    occupancy = Dict(s => 0. for s in states(mdp))
+    cols = fill(:, ndims(buffer[:s])-1)
+    for i=1:N
+        s = convert_s(GWPos, buffer[:s][cols..., i], mdp)
+        occupancy[s] += 1 / N
     end
-    occupancy
+    occupancy 
 end
 
-function render(mdp::LavaWorld, s=GWPos(7,5), a=nothing; color = s->10.0*POMDPs.reward(mdp, s), policy= nothing)
-    img = POMDPModelTools.render(mdp.gridworld, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))))
+function render(mdp::LavaWorld, s=GWPos(7,5), a=nothing; color = s->10.0*POMDPs.reward(mdp, s), policy= nothing, return_compose = false)
+    img = POMDPModelTools.render(mdp.gridworld, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))[1]))
+    return_compose && return img
     tmpfilename = "/tmp/out.png"
     img |> PNG(tmpfilename, 1cm .* mdp.gridworld.size...)
     load(tmpfilename)

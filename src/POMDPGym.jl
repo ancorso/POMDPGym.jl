@@ -3,6 +3,7 @@ module POMDPGym
     using POMDPModels
     import POMDPModelTools:render
     using POMDPModelTools
+    using POMDPPolicies
     using PyCall
     import PyCall: hasproperty
     using Parameters
@@ -25,7 +26,7 @@ module POMDPGym
     export torgb, preproc_atari_frame, AtariPOMDP
     include("atari_helpers.jl")
     
-    export GridWorldMDP, LavaWorldMDP, PendulumMDP, PendulumPOMDP, InvertedPendulumPOMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4, LagrangeConstrainedPOMDP, RewardModPOMDP, isfailure,
+    export GridWorldMDP, GWPos, LavaWorldMDP, PendulumMDP, PendulumPOMDP, InvertedPendulumPOMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4, LagrangeConstrainedPOMDP, RewardModPOMDP, isfailure,
     CollisionAvoidanceMDP, OptimalCollisionAvoidancePolicy, EpisodicSafetyGym,
     CartPoleMDP
     include("extra/gridworld.jl")
