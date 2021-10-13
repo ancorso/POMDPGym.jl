@@ -12,6 +12,7 @@ Base.in(pt::Vec2, c::Circle) = norm(pt .- c.center) <= c.radius
     range::Tuple{Vec2, Vec2} = (Vec2(-1.0, 1.0), Vec2(-1.0, 1.0)) # range of the contiuous gridworld
     v0::Tuple = (Distributions.Uniform(-.01f0, .01f0), Distributions.Uniform(-.01f0, .01f0)) # Initial velocity distribution
     rewards::Dict{Circle, Float32} = Dict(Circle(Vec2(-0.2f0,-0.4f0), 0.1)=>-1f0, Circle(Vec2(-0.5f0,0.5f0), 0.2f0)=>1f0)
+    costs::Dict{Circle, Float32} = Dict()
     disturbance = (Normal(0f0,0.02f0), Normal(0f0,0.02f0))
     discount = 0.99
     Δt = 0.2f0
@@ -52,15 +53,19 @@ end
 move_to_terminal(mdp, s) = out_of_bounds(mdp, s) || terminal_reward(mdp, s) != 0
     
     
-function POMDPs.gen(mdp::ContinuumWorldMDP, s, a, rng = Random.GLOBAL_RNG)
+function POMDPs.gen(mdp::ContinuumWorldMDP, s, a, rng = Random.GLOBAL_RNG; info=Dict())
     s = Vec4(s[1:4])
     r = POMDPs.reward(mdp, s)
+    info["cost"] = cost(mdp, s)
     # x = Vec2(rand(mdp.disturbance[1]), rand(mdp.disturbance[2]))
     if move_to_terminal(mdp, s)
         sp = Vec4([-10.,-10.,-10.,-10.]) # terminal
     else
         x, v = position(s), velocity(s)
-        v = v .+ (a .+ x).*mdp.Δt
+        
+        v = v .+ clamp.(a .+ x, -1, 1).*mdp.Δt
+        v = clamp.(v, -mdp.vmax, mdp.vmax)
+        
         x = x .+ v.*mdp.Δt
         sp = snap_to_boundary(mdp, Vec4(x..., v...))
     end
@@ -81,6 +86,14 @@ function POMDPs.reward(mdp::ContinuumWorldMDP, s)
         end
     end
     return r
+end
+
+function cost(mdp::ContinuumWorldMDP, s)
+    pos = position(s)
+    for (k,v) in mdp.costs
+        pos in k && return v
+    end
+    return 0f0
 end
 
 function POMDPs.initialstate(mdp::ContinuumWorldMDP)
@@ -117,14 +130,28 @@ function render(mdp::ContinuumWorldMDP, s=Vec4(0f0, 0f0, 0f0, 0f0), a=nothing)
         push!(rewards, (context(), circle(pos2canvas(k.center)..., scale2canvas(k.radius)), v <0 ? fill("red") : fill("green"), stroke("black")))
     end
     
+    costs = []
+    for (k,v) in mdp.costs
+        push!(costs, (context(), circle(pos2canvas(k.center)..., scale2canvas(k.radius)), fill("blue"), stroke("black")))
+    end
+
     pos = pos2canvas(position(s))
+    
+    curr_cost = cost(mdp, s)
+    extra = []
+    if curr_cost > 0
+        push!(extra, (context(), circle(pos..., 0.02), stroke("red")))
+    end
+    
     vel = vel2canvas(velocity(s), mdp.Δt*3)
     acc = isnothing(a) ? nothing : vel2canvas(a, mdp.Δt*3)
     img = compose(context(), 
         (context(), circle(pos..., 0.01), fill("blue"), stroke("black")),
+        extra...,
         (context(), line([[pos, pos .+ vel]]), stroke("grey")), isnothing(a) ? nothing :
         (context(), line([[pos .+ vel, pos .+ vel .+ acc]]), stroke("purple")),
         rewards...,
+        costs...,
         (context(), rectangle(), fill("white"))
     )
     tmpfilename = tempname()
