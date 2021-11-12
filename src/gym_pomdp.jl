@@ -37,9 +37,12 @@ function POMDPs.isterminal(mdp::GymPOMDP, s)
     try
         mdp.env.pyenv._elapsed_steps >= mdp.env.pyenv._max_episode_steps && return false
     catch
-        mdp.env.pyenv.num_steps >= mdp.env.pyenv.steps && return false
+        try
+            mdp.env.pyenv.num_steps >= mdp.env.pyenv.steps && return false
+        catch
+            return mdp.env.done
+        end
     end
-    mdp.env.done
 end
 POMDPs.discount(mdp::GymPOMDP) = mdp.γ
 

@@ -20,7 +20,7 @@ module POMDPGym
     
     include("pycalls.jl")
     
-    export GymPOMDP, render, init_mujoco_render
+    export GymPOMDP, reset!, step!, finished, render, close, init_mujoco_render
     include("gym_pomdp.jl")
     
     export torgb, preproc_atari_frame, AtariPOMDP
