@@ -13,11 +13,12 @@ Base.in(pt::Vec2, c::Circle) = norm(pt .- c.center) <= c.radius
     v0::Tuple = (Distributions.Uniform(-.01f0, .01f0), Distributions.Uniform(-.01f0, .01f0)) # Initial velocity distribution
     rewards::Dict{Circle, Float32} = Dict(Circle(Vec2(-0.2f0,-0.4f0), 0.1)=>-1f0, Circle(Vec2(-0.5f0,0.5f0), 0.2f0)=>1f0)
     costs::Dict{Circle, Float32} = Dict()
+    cost_model = nothing
     disturbance = (Normal(0f0,0.02f0), Normal(0f0,0.02f0))
     discount = 0.99
-    Δt = 0.2f0
+    Δt = 0.1f0
     vel_thresh = 0.05f0 # The fastest that the agent can be moving in the goal location ofr it to count
-    vmax = 0.1f0 # The fasted the agent can move in a given dimension
+    vmax = 1f0 # The fasted the agent can move in a given dimension
     z = []
 end
 
@@ -56,7 +57,7 @@ move_to_terminal(mdp, s) = out_of_bounds(mdp, s) || terminal_reward(mdp, s) != 0
 function POMDPs.gen(mdp::ContinuumWorldMDP, s, a, rng = Random.GLOBAL_RNG; info=Dict())
     s = Vec4(s[1:4])
     r = POMDPs.reward(mdp, s)
-    info["cost"] = cost(mdp, s)
+    info["cost"] = isnothing(mdp.cost_model) ? cost(mdp, s) : mdp.cost_model(s)
     # x = Vec2(rand(mdp.disturbance[1]), rand(mdp.disturbance[2]))
     if move_to_terminal(mdp, s)
         sp = Vec4([-10.,-10.,-10.,-10.]) # terminal
