@@ -103,7 +103,7 @@ function POMDPs.initialstate(mdp::ContinuumWorldMDP)
             x = Vec2(Float32(rand(rng, Distributions.Uniform(mdp.range[1]...))), Float32(rand(rng, Distributions.Uniform(mdp.range[2]...))))
             v = Vec2(Float32(rand(rng, mdp.v0[1])), Float32(rand(rng, mdp.v0[2])))
             s = Vec4(x..., v...)
-            !move_to_terminal(mdp, s) && return [s..., mdp.z...]
+            !move_to_terminal(mdp, s) && cost(mdp, s) == 0 && return [s..., mdp.z...]
         end
     end
     return ImplicitDistribution(istate)
