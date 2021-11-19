@@ -12,8 +12,7 @@ struct GymPOMDP{S, A} <: POMDP{S, A, O}
 end
 
 function GymPOMDP(env::GymEnv; pixel_observations = false, 
-                    γ = 0.99, actions = nothing, special_render = nothing, sign_reward = false, frame_stack = 1, frame_stack_dim = 3)
-    s0 = reset!(env)
+                    γ = 0.99, actions = nothing, special_render = nothing, sign_reward = false, frame_stack = 1, frame_stack_dim = 3, kwargs...)
     if isnothing(actions)
         actions = actionset(env.pyenv.action_space)
     end
@@ -21,7 +20,7 @@ function GymPOMDP(env::GymEnv; pixel_observations = false,
 end
 
 function GymPOMDP(environment::Symbol; version::Symbol = :v0, kwargs...)
-    env = GymEnv(environment, version)
+    env = GymEnv(environment, version; kwargs...)
     GymPOMDP(env; kwargs...)
 end
 
