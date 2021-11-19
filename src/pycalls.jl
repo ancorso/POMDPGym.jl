@@ -20,7 +20,6 @@ mutable struct GymEnv{T}
     function GymEnv{T}(name, ver, pyenv, pystate, state) where T
         env = new{T}(name, ver, pyenv, pyenv."step", pyenv."reset",
                                  pystate, PyNULL(), PyNULL(), state)
-        reset!(env)
         env
     end
 end
@@ -28,12 +27,12 @@ end
 use_pyarray_state(envname::Symbol) = !(envname ∈ (:Blackjack,))
 
 function GymEnv(name::Symbol, ver::Symbol = :v0;
-                stateT = ifelse(use_pyarray_state(name), PyArray, PyAny))
+                stateT = ifelse(use_pyarray_state(name), PyArray, PyAny), kwargs...)
     if PyCall.ispynull(pysoccer) && name ∈ (:Soccer, :SoccerEmptyGoal)
         copy!(pysoccer, pyimport("gym_soccer"))
     end
 
-    GymEnv(name, ver, pygym.make("$name-$ver"), stateT)
+    GymEnv(name, ver, pygym.make("$name-$ver"; kwargs...), stateT)
 end
 
 GymEnv(name::AbstractString; kwargs...) =
