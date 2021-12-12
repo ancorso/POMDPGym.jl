@@ -28,7 +28,7 @@ module POMDPGym
     
     export GridWorldMDP, GWPos, LavaWorldMDP, PendulumMDP, PendulumPOMDP, InvertedPendulumPOMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4, LagrangeConstrainedPOMDP, RewardModPOMDP, isfailure,
     CollisionAvoidanceMDP, OptimalCollisionAvoidancePolicy, EpisodicSafetyGym,
-    CartPoleMDP, SequenceMDP, CostMod
+    CartPoleMDP, SequenceMDP, CostMod, CostModMDP, CostModPOMDP
     include("extra/gridworld.jl")
     include("extra/lavaworld.jl")
     include("extra/pendulum.jl")
