@@ -26,9 +26,11 @@ module POMDPGym
     export torgb, preproc_atari_frame, AtariPOMDP
     include("atari_helpers.jl")
     
-    export GridWorldMDP, GWPos, LavaWorldMDP, PendulumMDP, PendulumPOMDP, InvertedPendulumPOMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4, LagrangeConstrainedPOMDP, RewardModPOMDP, isfailure,
+    export GridWorldMDP, GWPos, LavaWorldMDP, PendulumMDP, PendulumPOMDP, InvertedPendulumPOMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4, LagrangeConstrainedPOMDP,
+    RewardModPOMDP, RewardModMDP, RewardMod, isfailure,
     CollisionAvoidanceMDP, OptimalCollisionAvoidancePolicy, EpisodicSafetyGym,
-    CartPoleMDP, SequenceMDP, CostMod, CostModMDP, CostModPOMDP
+    CartPoleMDP, SequenceMDP, CostMod, CostModMDP, CostModPOMDP,
+    InfoCollectorPOMDP, InfoCollectorMDP, InfoCollector, clear_dataset
     include("extra/gridworld.jl")
     include("extra/lavaworld.jl")
     include("extra/pendulum.jl")
@@ -37,6 +39,7 @@ module POMDPGym
     include("extra/lagrange_constraints.jl")
     include("extra/reward_mod.jl")
     include("extra/cost_mod.jl")
+    include("extra/info_collector.jl")
     include("extra/collision_avoidance.jl")
     include("extra/episodic_safety_gym.jl")
     include("extra/cartpole.jl")
