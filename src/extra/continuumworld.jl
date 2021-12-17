@@ -18,6 +18,7 @@ Base.in(pt::Vec2, c::Circle) = norm(pt .- c.center) <= c.radius
     Δt = 0.1f0
     vel_thresh = 0.05f0 # The fastest that the agent can be moving in the goal location ofr it to count
     vmax = 1f0 # The fasted the agent can move in a given dimension
+    R = I # rotation matrix
     z = []
 end
 
@@ -57,6 +58,7 @@ function POMDPs.gen(mdp::ContinuumWorldMDP, s, a, rng = Random.GLOBAL_RNG; info=
     s = Vec4(s[1:4])
     r = POMDPs.reward(mdp, s)
     info["cost"] = cost(mdp, s)
+    a = mdp.R * a
     # x = Vec2(rand(mdp.disturbance[1]), rand(mdp.disturbance[2]))
     if move_to_terminal(mdp, s)
         sp = Vec4([-10.,-10.,-10.,-10.]) # terminal
