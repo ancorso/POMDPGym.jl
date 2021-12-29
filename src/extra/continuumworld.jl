@@ -19,7 +19,6 @@ Base.in(pt::Vec2, c::Circle) = norm(pt .- c.center) <= c.radius
     vel_thresh = 0.05f0 # The fastest that the agent can be moving in the goal location ofr it to count
     vmax = 1f0 # The fasted the agent can move in a given dimension
     R = I # rotation matrix
-    z = []
 end
 
 position(s) = Vec2(s[1:2]...)
@@ -71,7 +70,7 @@ function POMDPs.gen(mdp::ContinuumWorldMDP, s, a, rng = Random.GLOBAL_RNG; info=
         x = x .+ v.*mdp.Δt
         sp = snap_to_boundary(mdp, Vec4(x..., v...))
     end
-    (sp=[sp..., mdp.z...], r=r)
+    (sp=sp, r=r)
 end
 
 function POMDPs.reward(mdp::ContinuumWorldMDP, s)
@@ -104,7 +103,7 @@ function POMDPs.initialstate(mdp::ContinuumWorldMDP)
             x = Vec2(Float32(rand(rng, Distributions.Uniform(mdp.range[1]...))), Float32(rand(rng, Distributions.Uniform(mdp.range[2]...))))
             v = Vec2(Float32(rand(rng, mdp.v0[1])), Float32(rand(rng, mdp.v0[2])))
             s = Vec4(x..., v...)
-            !move_to_terminal(mdp, s) && cost(mdp, s) == 0 && return [s..., mdp.z...]
+            !move_to_terminal(mdp, s) && cost(mdp, s) == 0 && return s
         end
     end
     return ImplicitDistribution(istate)
@@ -125,7 +124,7 @@ function vel2canvas(p, scale::Float32 =1f0)
 end
 
 scale2canvas(v) = v ./ 2
-function render(mdp::ContinuumWorldMDP, s=Vec4(0f0, 0f0, 0f0, 0f0), a=nothing)
+function render(mdp::ContinuumWorldMDP, s=Vec4(0f0, 0f0, 0f0, 0f0), a=nothing, show_rotation=false)
     s = Vec4(s[1:4])
     rewards = []
     for (k,v) in mdp.rewards
@@ -138,6 +137,9 @@ function render(mdp::ContinuumWorldMDP, s=Vec4(0f0, 0f0, 0f0, 0f0), a=nothing)
     end
 
     pos = pos2canvas(position(s))
+    
+    l1 = pos2canvas([0,1])
+    center = pos2canvas([0,0])
     
     curr_cost = cost(mdp, s)
     extra = []
@@ -152,6 +154,7 @@ function render(mdp::ContinuumWorldMDP, s=Vec4(0f0, 0f0, 0f0, 0f0), a=nothing)
         extra...,
         (context(), line([[pos, pos .+ vel]]), stroke("grey")), isnothing(a) ? nothing :
         (context(), line([[pos .+ vel, pos .+ vel .+ acc]]), stroke("purple")),
+        show_rotation ? (context(), line([[center, center .+ mdp.R * l1]]), stroke("orange")) : nothing,
         rewards...,
         costs...,
         (context(), rectangle(), fill("white"))

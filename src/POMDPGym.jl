@@ -30,7 +30,7 @@ module POMDPGym
     RewardModPOMDP, RewardModMDP, RewardMod, isfailure,
     CollisionAvoidanceMDP, OptimalCollisionAvoidancePolicy, EpisodicSafetyGym,
     CartPoleMDP, SequenceMDP, CostMod, CostModMDP, CostModPOMDP, RMDP,
-    InfoCollectorPOMDP, InfoCollectorMDP, InfoCollector, clear_dataset
+    InfoCollectorPOMDP, InfoCollectorMDP, InfoCollector, clear_dataset, ZWrapper, ZWrap
     include("extra/gridworld.jl")
     include("extra/lavaworld.jl")
     include("extra/pendulum.jl")
@@ -45,6 +45,7 @@ module POMDPGym
     include("extra/cartpole.jl")
     include("extra/sequence_mdp.jl")
     include("extra/risk_estimation_mdp.jl")
+    include("extra/z_wrapper.jl")
     
     export AdversarialMDP, AdversarialPOMDP, AdditiveAdversarialMDP, AdditiveAdversarialPOMDP, disturbances, disturbanceindex
     include("extra/adversarialmdp.jl")
