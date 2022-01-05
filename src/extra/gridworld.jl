@@ -1,14 +1,29 @@
 struct GridWorldMDP <: MDP{GWPos, Symbol}
     g::SimpleGridWorld
+    costs::Dict{GWPos, Float64}
+    cost_penalty::Float64
 end
 
 GridWorldMDP(;size::Tuple{Int, Int}           = (10,10),
               rewards::Dict{GWPos, Float64}   = Dict(GWPos(4,3)=>-10.0, GWPos(4,6)=>-5.0, GWPos(9,3)=>10.0, GWPos(8,8)=>3.0),
+              costs::Dict{GWPos, Float64}     = Dict{GWPos, Float64}(),
+              cost_penalty::Float64           = 0.0,
               terminate_from::Set{GWPos}      = Set(keys(rewards)),
               tprob::Float64                  = 0.7,
-              discount::Float64               = 0.95) = GridWorldMDP(SimpleGridWorld(size = size, rewards = rewards, terminate_from = terminate_from, tprob = tprob, discount = discount))
+              discount::Float64               = 0.95) = GridWorldMDP(SimpleGridWorld(size = size, rewards = rewards, terminate_from = terminate_from, tprob = tprob, discount = discount), costs, cost_penalty)
 
-POMDPs.gen(mdp::GridWorldMDP, s, a, rng = Random.GLOBAL_RNG) = (sp = rand(rng, transition(mdp.g, s, a )), r = POMDPs.reward(mdp.g, s, a))
+function cost(mdp::GridWorldMDP, s)
+    get(mdp.costs, s, 0)
+end
+
+
+function POMDPs.gen(mdp::GridWorldMDP, s, a, rng = Random.GLOBAL_RNG, info=Dict())
+    sp = rand(rng, transition(mdp.g, s, a))
+    c = cost(mdp,s)
+    r = POMDPs.reward(mdp.g, s, a) - mdp.cost_penalty*c
+    info["cost"] = c
+    (;sp, r)
+end
 
 function POMDPs.initialstate(mdp::GridWorldMDP)
     function istate(rng::AbstractRNG)
