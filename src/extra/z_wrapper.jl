@@ -18,8 +18,10 @@ render(mdp::ZWrapperPOMDP, s, a = nothing; kwargs...) = render(mdp.pomdp, s, a; 
 render(mdp::ZWrapperPOMDP; kwargs...) = render(mdp.pomdp; kwargs...)
 
 function POMDPs.gen(mdp::ZWrapperPOMDP, s, a, rng::AbstractRNG=Random.GLOBAL_RNG; info=Dict())
-    sp, o, r = gen(mdp.pomdp, s, a, rng, info=info)
-    return (sp=sp, o=vcat(mdp.z, o), r=r)
+    info["z"] = mdp.z
+    gen(mdp.pomdp, s, a, rng, info=info)
+    # sp, o, r = gen(mdp.pomdp, s, a, rng, info=info)
+    # return (sp=sp, o=vcat(mdp.z, o), r=r)
 end
 
 
@@ -28,20 +30,20 @@ end
     z
 end
 
-POMDPs.initialstate(mdp::ZWrapperMDP) = ImplicitDistribution((rng) -> vcat(mdp.z, rand(rng, initialstate(mdp.mdp))))
+POMDPs.initialstate(mdp::ZWrapperMDP) = initialstate(mdp.mdp)
 
 POMDPs.actions(mdp::ZWrapperMDP) = actions(mdp.mdp)
 POMDPs.actionindex(mdp::ZWrapperMDP, a) = actionindex(mdp.mdp)
 
-POMDPs.isterminal(mdp::ZWrapperMDP, s) = isterminal(mdp.mdp, s[length(mdp.z):end])
+POMDPs.isterminal(mdp::ZWrapperMDP, s) = isterminal(mdp.mdp, s)
 POMDPs.discount(mdp::ZWrapperMDP) = discount(mdp.mdp)
 
-render(mdp::ZWrapperMDP, s, a = nothing; kwargs...) = render(mdp.mdp, s[length(mdp.z):end], a; kwargs...)
+render(mdp::ZWrapperMDP, s, a = nothing; kwargs...) = render(mdp.mdp, s, a; kwargs...)
 render(mdp::ZWrapperMDP; kwargs...) = render(mdp.mdp; kwargs...)
 
 function POMDPs.gen(mdp::ZWrapperMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
-    sp, r = gen(mdp.mdp, s[length(mdp.z):end], a, rng, info=info)
-    return (sp=vcat(mdp.z, sp), r=r)
+    info["z"] = mdp.z
+    gen(mdp.mdp, s, a, rng, info=info)
 end
 
 ZWrap(mdp::T, z) where T <: MDP = ZWrapperMDP(mdp, z)
