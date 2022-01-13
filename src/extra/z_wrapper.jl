@@ -4,7 +4,7 @@
 end
 
 POMDPs.initialstate(mdp::ZWrapperPOMDP) = initialstate(mdp.pomdp)
-POMDPs.initialobs(mdp::ZWrapperPOMDP, s) = ImplicitDistribution((rng) -> vcat(mdp.z, rand(rng, initialobs(mdp.pomdp, s))))
+POMDPs.initialobs(mdp::ZWrapperPOMDP, s) = initialobs(mdp.pomdp, s)
 
 POMDPs.actions(mdp::ZWrapperPOMDP) = actions(mdp.pomdp)
 POMDPs.actionindex(mdp::ZWrapperPOMDP, a) = actionindex(mdp.pomdp)

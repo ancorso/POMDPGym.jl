@@ -29,7 +29,7 @@ module POMDPGym
     export GridWorldMDP, GWPos, LavaWorldMDP, PendulumMDP, PendulumPOMDP, InvertedPendulumPOMDP, InvertedPendulumMDP, ContinuousBanditMDP, random_lava, ContinuumWorldMDP, Circle, Vec2, Vec4, LagrangeConstrainedPOMDP,
     RewardModPOMDP, RewardModMDP, RewardMod, isfailure,
     CollisionAvoidanceMDP, OptimalCollisionAvoidancePolicy, EpisodicSafetyGym,
-    CartPoleMDP, SequenceMDP, CostMod, CostModMDP, CostModPOMDP, RMDP,
+    CartPoleMDP, SequenceMDP, SequencePOMDP, CostMod, CostModMDP, CostModPOMDP, RMDP,
     InfoCollectorPOMDP, InfoCollectorMDP, InfoCollector, clear_dataset, ZWrapper, ZWrap
     include("extra/gridworld.jl")
     include("extra/lavaworld.jl")
@@ -49,5 +49,8 @@ module POMDPGym
     
     export AdversarialMDP, AdversarialPOMDP, AdditiveAdversarialMDP, AdditiveAdversarialPOMDP, disturbances, disturbanceindex
     include("extra/adversarialmdp.jl")
+    
+    export init_continual_world, get_clworld_task, cw10
+    include("extra/continualworld.jl")
 end # module
 
