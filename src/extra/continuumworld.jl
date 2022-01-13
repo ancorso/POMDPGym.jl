@@ -124,7 +124,7 @@ function vel2canvas(p, scale::Float32 =1f0)
 end
 
 scale2canvas(v) = v ./ 2
-function render(mdp::ContinuumWorldMDP, s=Vec4(0f0, 0f0, 0f0, 0f0), a=nothing, show_rotation=false)
+function render(mdp::ContinuumWorldMDP, s=Vec4(0f0, 0f0, 0f0, 0f0), a=nothing; show_rotation=false)
     s = Vec4(s[1:4])
     rewards = []
     for (k,v) in mdp.rewards

@@ -14,6 +14,9 @@ function curr(mdps::SequenceMDP)
     mdps.mdps[get_index(mdps.Ns, mdps.count)]
 end
 
+POMDPs.convert_s(t::Type{AbstractArray}, s::A2, mdp::SequenceMDP) where A2 = convert_s(t, s, curr(mdp))
+POMDPs.convert_s(t::Type{AbstractArray}, s::A2, mdp::SequenceMDP) where {A2 <: AbstractArray} = convert_s(t, s, curr(mdp))
+
 POMDPs.initialstate(mdp::SequenceMDP) = initialstate(curr(mdp))
 POMDPs.isterminal(mdp::SequenceMDP, s) = isterminal(curr(mdp), s)
 POMDPs.discount(mdp::SequenceMDP) = discount(curr(mdp))
