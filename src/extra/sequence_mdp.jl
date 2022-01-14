@@ -2,6 +2,7 @@
     mdps::Array{MDP{S,A}, 1} # Sequence of mdps to play
     Ns::Array{Int} # Number of experience samples for each mdp before switching to the next one
     count::Int = 0 # current count of the gen function
+    logging = false
 end
 
 function get_index(Ns, count)
@@ -21,7 +22,12 @@ POMDPs.initialstate(mdp::SequenceMDP) = initialstate(curr(mdp))
 POMDPs.isterminal(mdp::SequenceMDP, s) = isterminal(curr(mdp), s)
 POMDPs.discount(mdp::SequenceMDP) = discount(curr(mdp))
 function POMDPs.gen(mdp::SequenceMDP, s, a, args...; kwargs...)
-    mdp.count += 1
+    if !mdp.logging
+        mdp.count += 1
+    end
+    if mdp.count % 1001 == 0
+        println("====count: ", mdp.count, " mdp: ", get_index(mdp.Ns, mdp.count))
+    end
     gen(curr(mdp), s, a, args...; kwargs...)
 end
 render(mdp::SequenceMDP, args...; kwargs...) = render(curr(mdp), args...; kwargs...)
