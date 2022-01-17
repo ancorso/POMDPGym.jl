@@ -1,5 +1,5 @@
 # Common functions for dynamics and rendering of pendulums
-function pendulum_dynamics(env, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)
+function pendulum_dynamics(env, s, a, x = isnothing(env.px) ? 0 : rand(env.px); rng::AbstractRNG = Random.GLOBAL_RNG)
     # Deal with terminal states
     # println("failur thresh: ", env.failure_thresh, " val: ", abs(s[1]))
     if (isnothing(env.failure_thresh) ?  false : abs(s[1]) > env.failure_thresh)
@@ -11,15 +11,13 @@ function pendulum_dynamics(env, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)
         
     θ, ω = s[1], s[2]
     dt, g, m, l = env.dt, env.g, env.m, env.l
-    
-    
 
     a = a[1]
     a = clamp(a, -env.max_torque, env.max_torque)
-    costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + 1f0 * a^2
+    costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + -.01f0 * a^2
     
     a = a + env.ascale
-    
+    a = a + x
 
     ω = ω + (-3. * g / (2 * l) * sin(θ + π) + 3. * a / (m * l^2)) * dt
     θ = angle_normalize(θ + ω * dt)
@@ -90,6 +88,7 @@ end
     render_fun::Union{Nothing, Function} = nothing
     include_time_in_state = false
     maxT = 99*dt
+    px = nothing # Distribution over disturbances
 end
 
 InvertedPendulumPOMDP(failure_thresh = deg2rad(20), 
@@ -103,6 +102,11 @@ InvertedPendulumPOMDP(failure_thresh = deg2rad(20),
 
 function POMDPs.gen(mdp::PendulumPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
     sp, r = pendulum_dynamics(mdp, s, a, rng)
+    (sp = sp, o=rand(rng, observation(mdp, sp)), r = r)
+end
+
+function POMDPs.gen(mdp::PendulumPOMDP, s, a, x, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
+    sp, r = pendulum_dynamics(mdp, s, a, x, rng)
     (sp = sp, o=rand(rng, observation(mdp, sp)), r = r)
 end
 
@@ -144,6 +148,7 @@ render(mdp::PendulumPOMDP, s, a = 0) = render_pendulum(mdp, s, a)
     actions::Vector{Float64} = [-1., 1.]
     include_time_in_state = false
     maxT = 99*dt
+    px = nothing # Distribution over disturbances
 end
 
 InvertedPendulumMDP(failure_thresh = deg2rad(20), 
@@ -154,7 +159,13 @@ InvertedPendulumMDP(failure_thresh = deg2rad(20),
                     kwargs...) = PendulumMDP(failure_thresh = failure_thresh, θ0 = θ0, ω0 = ω0, Rstep = Rstep, λcost = λcost; kwargs...)
 
 function POMDPs.gen(mdp::PendulumMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
-    sp, r = pendulum_dynamics(mdp, s, a, rng)
+    sp, r = pendulum_dynamics(mdp, s, a, rng=rng)
+    (sp = sp, r = r)
+end
+
+# Adversarial version
+function POMDPs.gen(mdp::PendulumMDP, s, a, x, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
+    sp, r = pendulum_dynamics(mdp, s, a, x, rng=rng)
     (sp = sp, r = r)
 end
 
