@@ -16,7 +16,7 @@ function pendulum_dynamics(env, s, a, x = isnothing(env.px) ? 0 : rand(env.px); 
     a = clamp(a, -env.max_torque, env.max_torque)
     costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + -.01f0 * a^2
     
-    a = a + env.ascale
+    a = a + env.ashift
     a = a + x
 
     ω = ω + (-3. * g / (2 * l) * sin(θ + π) + 3. * a / (m * l^2)) * dt
@@ -82,7 +82,7 @@ end
     m::Float64 = 1.
     l::Float64 = 1.
     γ::Float32 = 0.99
-    ascale::Float64 = 1.0
+    ashift::Float64 = 0.0
     actions::Vector{Float64} = [-1., 1.]
     pixel_observations::Bool = false
     render_fun::Union{Nothing, Function} = nothing
@@ -139,7 +139,7 @@ render(mdp::PendulumPOMDP, s, a = 0) = render_pendulum(mdp, s, a)
     λcost = 1 # Coefficient to the traditional OpenAIGym Reward
     max_speed::Float64 = 8.
     max_torque::Float64 = 2.
-    ascale::Float64 = 1.0
+    ashift::Float64 = 0.0
     dt::Float64 = .05
     g::Float64 = 10.
     m::Float64 = 1.

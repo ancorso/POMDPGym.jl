@@ -24,7 +24,7 @@ end
 position(s) = Vec2(s[1:2]...)
 velocity(s) = Vec2(s[3:4]...)
 
-isfailure(mdp, s) = !isterminal(mdp, s) && (terminal_reward(mdp, s) < 0 || out_of_bounds(mdp, s))
+isfailure(mdp::ContinuumWorldMDP, s) = !isterminal(mdp, s) && (terminal_reward(mdp, s) < 0 || out_of_bounds(mdp, s))
 
 function snap_to_boundary(mdp, s)
     s = max.(Vec4([mdp.range[1][1], mdp.range[2][1], -mdp.vmax, -mdp.vmax]), s)

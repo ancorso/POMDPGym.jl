@@ -29,6 +29,10 @@ function POMDPs.isterminal(mdp::RMDP, s)
     end
     isterm
 end
+
+function isfailure(mdp::RMDP, s)
+    isfailure(mdp.amdp, get_s(mdp,s))
+end
     
 POMDPs.discount(mdp::RMDP) = discount(mdp.amdp)
 

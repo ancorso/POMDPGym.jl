@@ -38,6 +38,7 @@ end
 POMDPs.convert_s(::Type{AbstractArray}, s::GWPos, mdp::GridWorldMDP) = Float32.([s...])
 
 POMDPs.actions(mdp::GridWorldMDP) = POMDPs.actions(mdp.g)
+POMDPs.actionindex(mdp::GridWorldMDP, a) = POMDPs.actionindex(mdp.g, a)
 
 POMDPs.isterminal(mdp::GridWorldMDP, s) = isterminal(mdp.g, s)
 POMDPs.discount(mdp::GridWorldMDP) = discount(mdp.g)
