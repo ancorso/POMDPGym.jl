@@ -34,7 +34,7 @@ function isfailure(mdp::RMDP, s)
     isfailure(mdp.amdp, get_s(mdp,s))
 end
     
-POMDPs.discount(mdp::RMDP) = discount(mdp.amdp)
+POMDPs.discount(mdp::RMDP) = 1f0
 
 render(mdp::RMDP, s, a = nothing; kwargs...) = render(mdp.amdp, get_s(mdp,s), a; kwargs...)
 render(mdp::RMDP; kwargs...) = render(mdp.amdp; kwargs...)
