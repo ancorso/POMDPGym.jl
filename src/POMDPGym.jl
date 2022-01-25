@@ -17,6 +17,7 @@ module POMDPGym
     using StaticArrays
     using LinearAlgebra
     using GridInterpolations
+    using BeliefUpdaters
     
     include("pycalls.jl")
     
