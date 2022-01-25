@@ -3,6 +3,7 @@
     π # policy
     updater = DiscreteUpdater(pomdp)
     initial_belief_distribution = uniform_belief(updater)# belief
+    cost_fn
     dt = 0.1
     maxT = 100*dt
 end
@@ -14,9 +15,7 @@ end
 
 function POMDPs.actions(mdp::RPOMDP, s)
     d = observation(mdp.pomdp, action(mdp.policy, s[2]), s[2])
-    vs = d.vals[d.probs .> 0]
-    probs = d.probs[d.probs .> 0]
-    DiscreteNonParametric(vs, probs)
+    d.vals[d.probs .> 0]
 end
 
 POMDPs.states(mdp::RPOMDP) = states(mdp.pomdp)
@@ -38,8 +37,10 @@ function POMDPs.gen(mdp::RPOMDP, st, x, rng::AbstractRNG = Random.GLOBAL_RNG; kw
     a = action(policy, b)
 
     sp, o, r = @gen(:sp,:o,:r)(mdp.pomdp, s, a, sim.rng)
+    
+    cost = mdp.cost_fn(r) # Rmax - r
 
     b = update(mdp.updater, b, a, o)
     
-    (sp=Any[t+mdp.dt, sp, b], r=r)
+    (sp=Any[t+mdp.dt, sp, b], r=cost)
 end
