@@ -14,8 +14,8 @@ function POMDPs.initialstate(mdp::RPOMDP)
 end
 
 function POMDPs.actions(mdp::RPOMDP, s)
-    d = observation(mdp.pomdp, action(mdp.policy, s[2]), s[2])
-    d.vals[d.probs .> 0]
+    d = observation(mdp.pomdp, action(mdp.π, s[3]), s[2])
+    [d.vals[findall(d.probs .> 0)]...]
 end
 
 POMDPs.states(mdp::RPOMDP) = states(mdp.pomdp)
@@ -34,9 +34,9 @@ render(mdp::RPOMDP, args...; kwargs...) = render(mdp.pomdp, args...; kwargs...)
 function POMDPs.gen(mdp::RPOMDP, st, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...)
     t, s, b = st
     
-    a = action(policy, b)
+    a = action(mdp.π, b)
 
-    sp, o, r = @gen(:sp,:o,:r)(mdp.pomdp, s, a, sim.rng)
+    sp, o, r = @gen(:sp,:o,:r)(mdp.pomdp, s, a, rng)
     
     cost = mdp.cost_fn(r) # Rmax - r
 
@@ -44,3 +44,4 @@ function POMDPs.gen(mdp::RPOMDP, st, x, rng::AbstractRNG = Random.GLOBAL_RNG; kw
     
     (sp=Any[t+mdp.dt, sp, b], r=cost)
 end
+
