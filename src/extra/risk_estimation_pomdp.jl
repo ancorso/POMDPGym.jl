@@ -38,7 +38,7 @@ function POMDPs.gen(mdp::RPOMDP, st, x, rng::AbstractRNG = Random.GLOBAL_RNG; kw
 
     sp, o, r = @gen(:sp,:o,:r)(mdp.pomdp, s, a, rng)
     
-    cost = mdp.cost_fn(r) # Rmax - r
+    cost = mdp.cost_fn((;st, a, sp, o, r)) # Rmax - r
 
     b = update(mdp.updater, b, a, o)
     
