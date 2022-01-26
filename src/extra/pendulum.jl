@@ -14,7 +14,7 @@ function pendulum_dynamics(env, s, a, x = isnothing(env.px) ? 0 : rand(env.px); 
 
     a = a[1]
     a = clamp(a, -env.max_torque, env.max_torque)
-    costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + -.01f0 * a^2
+    costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + 1f0 * a^2
     
     a = a + env.ashift
     a = a + x

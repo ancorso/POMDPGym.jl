@@ -25,7 +25,7 @@ POMDPs.actionindex(mdp::RMDP, a) = disturbanceindex(mdp.amdp, a)
 function POMDPs.isterminal(mdp::RMDP, s)
     isterm = isterminal(mdp.amdp, get_s(mdp, s))
     if mdp.include_time_in_state
-        isterm = isterm || (s[1] > (mdp.maxT - mdp.dt/2))
+        isterm = isterm || (s[1] > (mdp.maxT + mdp.dt/2))
     end
     isterm
 end
