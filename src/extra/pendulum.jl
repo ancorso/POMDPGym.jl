@@ -14,7 +14,7 @@ function pendulum_dynamics(env, s, a, x = isnothing(env.px) ? 0 : rand(env.px); 
 
     a = a[1]
     a = clamp(a, -env.max_torque, env.max_torque)
-    costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + 1f0 * a^2
+    costs = angle_normalize(θ)^2 + 0.1f0 * ω^2 + 0.001f0 * a^2
     
     a = a + env.ashift
     a = a + x
@@ -52,7 +52,7 @@ angle_normalize(x) = mod((x+π), (2*π)) - π
     γ::Float32 = 0.99
     ashift::Float64 = 0.0
     actions::Vector{Float64} = [-1., 1.]
-    observation_fn = (s) -> [angle_normalize(s[1]), s[2]] #[cos(s[1]), sin(s[1]), s[2]]
+    observation_fn = (s) -> s
     include_time_in_state = false
     maxT = 99*dt
     px = nothing # Distribution over disturbances
