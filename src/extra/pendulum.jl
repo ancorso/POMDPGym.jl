@@ -34,39 +34,7 @@ end
 
 angle_normalize(x) = mod((x+π), (2*π)) - π
 
-function render_pendulum(env, s, a)
-    θ = s[1] + π/2.
-    point_array = [(0.5,0.5), (0.5 + 0.3*cos(θ), 0.5 - 0.3*sin(θ))]
-    
-    a_rad = abs(a)/10.
-    if a < 0
-        θstart = -3π/4
-        θend = -θstart
-        θarr = θend
-    else
-        θstart = π/4
-        θend = -θstart
-        θarr = θstart
-    end 
-    
-    
-    # Draw the arrow 
-    endpt = (0.5, 0.5) .+ a_rad.*(cos(θarr), sin(θarr))
-    uparr = endpt .+ 0.1*a_rad.*(cos(θarr)-sign(a)*sin(θarr), sign(a)*cos(θarr)+sin(θarr))
-    dwnarr = endpt .+ 0.1*a_rad.*(-cos(θarr)-sign(a)sin(θarr), sign(a)*cos(θarr)-sin(θarr))
-    arrow_array = [[endpt, uparr], [endpt, dwnarr]]
-    
-    
-    img = compose(context(),
-        (context(), line(arrow_array), arc(0.5, 0.5, a_rad, θstart, θend),  linewidth(0.5mm), fillopacity(0.), stroke("red")),
-        (context(), circle(0.5, 0.5, 0.01), fill("blue"), stroke("black")),
-        (context(), line(point_array), stroke("black"), linewidth(1mm)),
-        (context(), rectangle(), fill("white"))
-    )
-    tmpfilename = tempname()
-    img |> PNG(tmpfilename, 10cm, 10cm)
-    load(tmpfilename)
-end
+
 
 ## POMDP implementation -- Allows for pixel observation
 @with_kw struct PendulumPOMDP <: POMDP{Array{Float32}, Float64, Array{Float32}}
@@ -84,8 +52,7 @@ end
     γ::Float32 = 0.99
     ashift::Float64 = 0.0
     actions::Vector{Float64} = [-1., 1.]
-    pixel_observations::Bool = false
-    render_fun::Union{Nothing, Function} = nothing
+    observation_fn = (s) -> [angle_normalize(s[1]), s[2]] #[cos(s[1]), sin(s[1]), s[2]]
     include_time_in_state = false
     maxT = 99*dt
     px = nothing # Distribution over disturbances
@@ -98,20 +65,20 @@ InvertedPendulumPOMDP(failure_thresh = deg2rad(20),
                     λcost = 1;
                     kwargs...) = PendulumPOMDP(failure_thresh = failure_thresh, θ0 = θ0, ω0 = ω0, Rstep = Rstep, λcost = λcost; kwargs...)
 
-
+ImageInvertedPendulum(;kwargs...) = InvertedPendulumPOMDP(observation_fn=simple_render_pendulum; kwargs...)
 
 function POMDPs.gen(mdp::PendulumPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
-    sp, r = pendulum_dynamics(mdp, s, a, rng)
+    sp, r = pendulum_dynamics(mdp, s, a, rng=rng)
     (sp = sp, o=rand(rng, observation(mdp, sp)), r = r)
 end
 
 function POMDPs.gen(mdp::PendulumPOMDP, s, a, x, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
-    sp, r = pendulum_dynamics(mdp, s, a, x, rng)
+    sp, r = pendulum_dynamics(mdp, s, a, x, rng=rng)
     (sp = sp, o=rand(rng, observation(mdp, sp)), r = r)
 end
 
 function POMDPs.observation(mdp::PendulumPOMDP, s)
-    o = mdp.pixel_observations ? mdp.render_fun(s) : [angle_normalize(s[1]), s[2]] #[cos(s[1]), sin(s[1]), s[2]]
+    o = mdp.observation_fn(s) 
     Deterministic(Float32.(o))
 end
 
@@ -189,3 +156,112 @@ POMDPs.discount(mdp::PendulumMDP) = mdp.γ
 render(mdp::PendulumMDP, s, a::AbstractArray) = render(mdp, s, a...)
 render(mdp::PendulumMDP, s, a = 0) = render_pendulum(mdp, s, a)
 
+
+## Rendering
+function render_pendulum(env, s, a)
+    θ = s[1] + π/2.
+    point_array = [(0.5,0.5), (0.5 + 0.3*cos(θ), 0.5 - 0.3*sin(θ))]
+    
+    a_rad = abs(a)/10.
+    if a < 0
+        θstart = -3π/4
+        θend = -θstart
+        θarr = θend
+    else
+        θstart = π/4
+        θend = -θstart
+        θarr = θstart
+    end 
+    
+    
+    # Draw the arrow 
+    endpt = (0.5, 0.5) .+ a_rad.*(cos(θarr), sin(θarr))
+    uparr = endpt .+ 0.1*a_rad.*(cos(θarr)-sign(a)*sin(θarr), sign(a)*cos(θarr)+sin(θarr))
+    dwnarr = endpt .+ 0.1*a_rad.*(-cos(θarr)-sign(a)sin(θarr), sign(a)*cos(θarr)-sin(θarr))
+    arrow_array = [[endpt, uparr], [endpt, dwnarr]]
+    
+    
+    img = compose(context(),
+        (context(), line(arrow_array), arc(0.5, 0.5, a_rad, θstart, θend),  linewidth(0.5mm), fillopacity(0.), stroke("red")),
+        (context(), circle(0.5, 0.5, 0.01), fill("blue"), stroke("black")),
+        (context(), line(point_array), stroke("black"), linewidth(1mm)),
+        (context(), rectangle(), fill("white"))
+    )
+    tmpfilename = tempname()
+    img |> PNG(tmpfilename, 10cm, 10cm)
+    load(tmpfilename)
+end
+
+function simple_render_pendulum(state; show_prev = true, dt = 1, down = true, stride = 4)
+    θ_curr = -state[1]
+    if show_prev
+        θ_prev = θ_curr + state[2]*dt
+    end
+
+    curr_frame = full_resolution_pendulum(θ_curr)
+    if show_prev
+        prev_frame = full_resolution_pendulum(θ_prev, intensity = 0.5)
+        curr_frame = min.(prev_frame, curr_frame)
+    end
+
+    if down
+        curr_frame = downsample(curr_frame, stride = stride)
+    end
+
+    # return  Gray.(reverse(curr_frame, dims=2))'
+    return Gray.(reverse(curr_frame, dims=2)')
+end
+
+
+function full_resolution_pendulum(θ; intensity = 1)
+    rot_mat_cw = @SArray [cos(θ) sin(θ); -sin(θ) cos(θ)]
+    height = 70
+    width = 10
+    # center = height + width
+    # shift = @SArray [center, width]
+
+    # Empty matrix to store full size image before cropping and downsampling
+    pic = ones(4*width, height)
+    shift = [Int(size(pic, 1) / 2), 0]
+    
+    # Loop through all pendulum indices
+    for point in Iterators.product(-width/2:width/2, 0:height)
+        # Rotate to correct angle
+        rotated_point = round.(Int, rot_mat_cw * collect(point))
+        # Shift to location in pic array (can't have negative indices)
+        shifted_point = rotated_point .+ shift
+        # Make that index black
+        if shifted_point[1] > 1 && shifted_point[1] <= size(pic, 1) &&
+            shifted_point[2] > 1 && shifted_point[2] <= size(pic, 2)
+            pic[shifted_point[1], shifted_point[2]] = 1 - intensity
+        end
+    end
+
+    # Crop to 400x600
+    # cropped_pic = pic[center - 200:center + 199, height - 599:height]
+
+    return pic
+end
+
+function downsample(pic; stride = 50, avg = true)
+    height = convert(Int64, ceil(size(pic, 1) / stride))
+    width = convert(Int64, ceil(size(pic, 2) / stride))
+
+    downsampled_pic = zeros(height, width)
+
+    for i = 1:width
+        colmin = stride * (i - 1) + 1
+        colmax = min(stride * i, size(pic, 2))
+        for j = 1:height
+            rowmin = stride * (j - 1) + 1
+            rowmax = min(stride * j, size(pic, 1))
+            if avg
+                downsampled_pic[j, i] = mean(pic[rowmin:rowmax, colmin:colmax])
+            else
+                downsampled_pic[j, i] = minimum(pic[rowmin:rowmax, colmin:colmax])
+            end
+        end
+    end
+
+    return downsampled_pic
+end
