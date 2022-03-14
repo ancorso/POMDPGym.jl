@@ -5,6 +5,7 @@
     include_time_in_state = false
     dt = 0.1
     maxT = 100*dt
+    disturbance_type=:arg #:arg if passed as argument, :noise if used as noise on the state
 end
 
 function POMDPs.initialstate(mdp::RMDP)
@@ -40,7 +41,14 @@ render(mdp::RMDP, s, a = nothing; kwargs...) = render(mdp.amdp, get_s(mdp,s), a;
 render(mdp::RMDP; kwargs...) = render(mdp.amdp; kwargs...)
 
 function POMDPs.gen(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...)
-    sp, r = gen(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s)), x, rng; kwargs...)
+    if mdp.disturbance_type == :arg
+        sp, r = gen(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s)), x, rng; kwargs...)
+    elseif mdp.disturbance_type == :noise
+        sp, r = gen(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s) .+ x), rng; kwargs...)
+    else
+        @error "Unrecognized disturbance type $(mdp.disturbance_type)"
+    end
+        
     if mdp.include_time_in_state
         t = s[1]
         sp = [t+mdp.dt, sp...]
