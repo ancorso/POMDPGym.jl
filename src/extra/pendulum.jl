@@ -65,7 +65,7 @@ InvertedPendulumPOMDP(failure_thresh = deg2rad(20),
                     λcost = 1;
                     kwargs...) = PendulumPOMDP(failure_thresh = failure_thresh, θ0 = θ0, ω0 = ω0, Rstep = Rstep, λcost = λcost; kwargs...)
 
-ImageInvertedPendulum(;kwargs...) = InvertedPendulumPOMDP(observation_fn=simple_render_pendulum; kwargs...)
+ImageInvertedPendulum(;dt = .05, kwargs...) = InvertedPendulumPOMDP(observation_fn=(s)->simple_render_pendulum(s, dt=dt); dt=dt, kwargs...)
 
 function POMDPs.gen(mdp::PendulumPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
     sp, r = pendulum_dynamics(mdp, s, a, rng=rng)
@@ -193,14 +193,14 @@ function render_pendulum(env, s, a)
 end
 
 function simple_render_pendulum(state; show_prev = true, dt = 1, down = true, stride = 4)
-    θ_curr = -state[1]
+    θ_curr = state[1]
     if show_prev
-        θ_prev = θ_curr + state[2]*dt
+        θ_prev = θ_curr - state[2]*dt
     end
 
     curr_frame = full_resolution_pendulum(θ_curr)
     if show_prev
-        prev_frame = full_resolution_pendulum(θ_prev, intensity = 0.5)
+        prev_frame = full_resolution_pendulum(θ_prev)
         curr_frame = min.(prev_frame, curr_frame)
     end
 
@@ -214,7 +214,7 @@ end
 
 
 function full_resolution_pendulum(θ; intensity = 1)
-    rot_mat_cw = @SArray [cos(θ) sin(θ); -sin(θ) cos(θ)]
+    rot_mat_cw = @SArray [cos(θ) -sin(θ); sin(θ) cos(θ)]
     height = 70
     width = 10
     # center = height + width
@@ -265,3 +265,4 @@ function downsample(pic; stride = 50, avg = true)
 
     return downsampled_pic
 end
+
