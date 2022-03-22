@@ -192,24 +192,22 @@ function render_pendulum(env, s, a)
     load(tmpfilename)
 end
 
-function simple_render_pendulum(state; show_prev = true, dt = 1, down = true, stride = 4)
+function simple_render_pendulum(state; show_prev=true, dt=1, stride=4, noise=nothing)
     θ_curr = state[1]
+
+    curr_frame = downsample(full_resolution_pendulum(θ_curr); stride)
     if show_prev
         θ_prev = θ_curr - state[2]*dt
+        prev_frame = downsample(full_resolution_pendulum(θ_prev); stride)
+        curr_frame = cat(curr_frame, prev_frame, dims=3)
     end
 
-    curr_frame = full_resolution_pendulum(θ_curr)
-    if show_prev
-        prev_frame = full_resolution_pendulum(θ_prev)
-        curr_frame = min.(prev_frame, curr_frame)
-    end
-
-    if down
-        curr_frame = downsample(curr_frame, stride = stride)
+    if !isnothing(noise)
+        clamp.(curr_frame .+= rand(noise, size(curr_frame)), 0, 1)
     end
 
     # return  Gray.(reverse(curr_frame, dims=2))'
-    return Gray.(reverse(curr_frame, dims=2)')
+    return Gray.(curr_frame)
 end
 
 
@@ -240,7 +238,7 @@ function full_resolution_pendulum(θ; intensity = 1)
     # Crop to 400x600
     # cropped_pic = pic[center - 200:center + 199, height - 599:height]
 
-    return pic
+    return reverse(pic, dims=2)'
 end
 
 function downsample(pic; stride = 50, avg = true)
