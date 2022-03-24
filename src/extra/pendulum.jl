@@ -203,7 +203,8 @@ function simple_render_pendulum(state; show_prev=true, dt=1, stride=4, noise=not
     end
 
     if !isnothing(noise)
-        clamp.(curr_frame .+= rand(noise, size(curr_frame)), 0, 1)
+        curr_frame .+= rand(noise, size(curr_frame))
+        curr_frame = clamp.(curr_frame, 0, 1)
     end
 
     # return  Gray.(reverse(curr_frame, dims=2))'
