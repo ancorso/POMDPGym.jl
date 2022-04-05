@@ -56,5 +56,16 @@ function POMDPs.gen(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwarg
     (sp=sp, r=mdp.cost_fn(mdp, s, sp))
 end
 
-POMDPs.reward(mdp::RMDP, s) = mdp.cost_fn(mdp.amdp, s)
+function POMDPs.transition(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...)
+    if mdp.disturbance_type == :arg
+        t = transition(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s)), x, rng; kwargs...)
+    elseif mdp.disturbance_type == :noise
+        t = transition(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s) .+ x), rng; kwargs...)
+    else
+        @error "Unrecognized disturbance type $(mdp.disturbance_type)"
+    end
+    t
+end
+
+POMDPs.reward(mdp::RMDP, s, sp) = mdp.cost_fn(mdp.amdp, s, sp)
 
