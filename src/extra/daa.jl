@@ -99,7 +99,7 @@ function OptimalDetectAndAvoidPolicy(mdp::DetectAndAvoidMDP, hs=range(-200, 200,
     # Solve with backwards induction value iteration
     for (si, s) in enumerate(𝒮)
         for (ai, a) in enumerate(actions(mdp))
-            Tsa = transition(mdp, s, a, 0.0)
+            Tsa = transition(mdp, s, a, 1.0)
             Q[ai][si] = reward(mdp, s, a)
             Q[ai][si] += sum(isterminal(mdp, s′) ? 0.0 : Tsa.probs[j] * GridInterpolations.interpolate(grid, U, vec(s′)) for (j, s′) in enumerate(Tsa.vals))
         end
