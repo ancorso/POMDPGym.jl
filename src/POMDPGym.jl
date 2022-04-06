@@ -42,6 +42,7 @@ module POMDPGym
     include("extra/cost_mod.jl")
     include("extra/info_collector.jl")
     include("extra/collision_avoidance.jl")
+    include("extra/daa.jl")
     include("extra/episodic_safety_gym.jl")
     include("extra/cartpole.jl")
     include("extra/sequence_mdp.jl")
