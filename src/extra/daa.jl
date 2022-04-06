@@ -13,8 +13,7 @@
 end
 
 function POMDPs.gen(mdp::DetectAndAvoidMDP, s, a, x, rng::AbstractRNG=Random.GLOBAL_RNG)
-    a = x == 0 ? 0.0 : a # COC if don't detect
-    t = transition(mdp, s, a)
+    t = transition(mdp, s, a, x)
     (sp=rand(t), r=reward(mdp, s, a))
 end
 
