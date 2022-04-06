@@ -42,9 +42,11 @@ render(mdp::RMDP; kwargs...) = render(mdp.amdp; kwargs...)
 
 function POMDPs.gen(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...)
     if mdp.disturbance_type == :arg
-        sp, r = gen(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s)), x, rng; kwargs...)
+        sp, r = gen(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s)), x, rng; kwargs...)
     elseif mdp.disturbance_type == :noise
-        sp, r = gen(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s) .+ x), rng; kwargs...)
+        sp, r = gen(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x), rng; kwargs...)
+    elseif mdp.disturbance_type == :both
+        sp, r = gen(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x[2:end]), x[1], rng; kwargs...)
     else
         @error "Unrecognized disturbance type $(mdp.disturbance_type)"
     end
@@ -58,9 +60,11 @@ end
 
 function POMDPs.transition(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...)
     if mdp.disturbance_type == :arg
-        t = transition(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s)), x, rng; kwargs...)
+        t = transition(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s)), x, rng; kwargs...)
     elseif mdp.disturbance_type == :noise
-        t = transition(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s) .+ x), rng; kwargs...)
+        t = transition(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x), rng; kwargs...)
+    elseif mdp.disturbance_type == :both
+        t = transition(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x[2:end]), x[1], rng; kwargs...)
     else
         @error "Unrecognized disturbance type $(mdp.disturbance_type)"
     end
