@@ -1,7 +1,7 @@
 @with_kw mutable struct RMDP{S,A} <: MDP{S,A}
     amdp::MDP{S,A}
     π
-    cost_fn = POMDPS.reward
+    cost_fn = POMDPs.reward
     include_time_in_state = false
     dt = 0.1
     maxT = 100*dt
