@@ -12,10 +12,15 @@
     τ0 = 40
 end
 
-function POMDPs.gen(mdp::CollisionAvoidanceMDP, s, a, x=rand(mdp.px), rng::AbstractRNG = Random.GLOBAL_RNG; )
+# function POMDPs.gen(mdp::CollisionAvoidanceMDP, s, a, x=rand(mdp.px), rng::AbstractRNG = Random.GLOBAL_RNG; )
+#     t = transition(mdp, s, a)
+#     x_index = findfirst(mdp.px.support .== x)
+#     (sp=t.vals[x_index], r = reward(mdp, s, a))
+# end
+
+function POMDPs.gen(mdp::CollisionAvoidanceMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)
     t = transition(mdp, s, a)
-    x_index = findfirst(mdp.px.support .== x)
-    (sp=t.vals[x_index], r = reward(mdp, s, a))
+    (sp = rand(t), r = reward(mdp, s, a))
 end
 
 function POMDPs.transition(mdp::CollisionAvoidanceMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG)

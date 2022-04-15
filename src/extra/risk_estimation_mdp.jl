@@ -1,7 +1,7 @@
 @with_kw mutable struct RMDP{S,A} <: MDP{S,A}
     amdp::MDP{S,A}
     π
-    cost_fn = POMDPS.reward
+    cost_fn = POMDPs.reward
     include_time_in_state = false
     dt = 0.1
     maxT = 100*dt
@@ -42,9 +42,11 @@ render(mdp::RMDP; kwargs...) = render(mdp.amdp; kwargs...)
 
 function POMDPs.gen(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...)
     if mdp.disturbance_type == :arg
-        sp, r = gen(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s)), x, rng; kwargs...)
+        sp, r = gen(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s)), x, rng; kwargs...)
     elseif mdp.disturbance_type == :noise
-        sp, r = gen(mdp.amdp, get_s(mdp,s), action(mdp.π,get_s(mdp,s) .+ x), rng; kwargs...)
+        sp, r = gen(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x), rng; kwargs...)
+    elseif mdp.disturbance_type == :both
+        sp, r = gen(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x[2:end]), x[1], rng; kwargs...)
     else
         @error "Unrecognized disturbance type $(mdp.disturbance_type)"
     end
@@ -56,5 +58,18 @@ function POMDPs.gen(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwarg
     (sp=sp, r=mdp.cost_fn(mdp, s, sp))
 end
 
-POMDPs.reward(mdp::RMDP, s) = mdp.cost_fn(mdp.amdp, s)
+function POMDPs.transition(mdp::RMDP, s, x, rng::AbstractRNG = Random.GLOBAL_RNG; kwargs...)
+    if mdp.disturbance_type == :arg
+        t = transition(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s)), x, rng; kwargs...)
+    elseif mdp.disturbance_type == :noise
+        t = transition(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x), rng; kwargs...)
+    elseif mdp.disturbance_type == :both
+        t = transition(mdp.amdp, get_s(mdp, s), action(mdp.π, get_s(mdp, s) .+ x[2:end]), x[1], rng; kwargs...)
+    else
+        @error "Unrecognized disturbance type $(mdp.disturbance_type)"
+    end
+    t
+end
+
+POMDPs.reward(mdp::RMDP, s, sp) = mdp.cost_fn(mdp.amdp, s, sp)
 
