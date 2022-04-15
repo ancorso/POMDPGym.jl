@@ -17,6 +17,18 @@ function cost(mdp::GridWorldMDP, s)
 end
 
 
+function POMDPs.transition(mdp::GridWorldMDP, s, a)
+    transition(mdp.g, s, a)
+end
+
+function POMDPs.reward(mdp::GridWorldMDP, s, a)
+    reward(mdp.g, s, a)
+end
+function POMDPs.reward(mdp::GridWorldMDP, s)
+    reward(mdp.g, s)
+end
+
+
 function POMDPs.gen(mdp::GridWorldMDP, s, a, rng = Random.GLOBAL_RNG, info=Dict())
     sp = rand(rng, transition(mdp.g, s, a))
     c = cost(mdp,s)
@@ -43,8 +55,11 @@ POMDPs.actionindex(mdp::GridWorldMDP, a) = POMDPs.actionindex(mdp.g, a)
 POMDPs.isterminal(mdp::GridWorldMDP, s) = isterminal(mdp.g, s)
 POMDPs.discount(mdp::GridWorldMDP) = discount(mdp.g)
 
-function render(mdp::GridWorldMDP, s=GWPos(7,5), a=nothing; color = s->10.0*POMDPs.reward(mdp.g, s), policy= nothing)
-    img = POMDPModelTools.render(mdp.g, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))))
+POMDPs.states(mdp::GridWorldMDP) = states(mdp.g)
+POMDPs.stateindex(mdp::GridWorldMDP, s) = stateindex(mdp.g, s)
+
+function render(mdp::GridWorldMDP, s=GWPos(7,5), a=nothing; color = s->10.0*POMDPs.reward(mdp.g, s), policy= nothing, kwargs...)
+    img = POMDPModelTools.render(mdp.g, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))); kwargs...)
     tmpfilename = "/tmp/out.png"
     img |> PNG(tmpfilename, 1cm .* mdp.g.size...)
     load(tmpfilename)
