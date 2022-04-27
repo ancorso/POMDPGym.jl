@@ -61,7 +61,7 @@ end
 POMDPs.actions(mdp::DetectAndAvoidMDP) = mdp.actions
 POMDPs.actionindex(mdp::DetectAndAvoidMDP, a) = findfirst(mdp.actions .== a)
 
-disturbanceindex(mdp::DetectAndAvoidMDP, x) = findfirst(mdp.mdp.px.support .== x)
+disturbanceindex(mdp::DetectAndAvoidMDP, x) = findfirst(mdp.px.support .== x)
 disturbances(mdp::DetectAndAvoidMDP) = mdp.px.support
 
 function isfailure(mdp::DetectAndAvoidMDP, s)
