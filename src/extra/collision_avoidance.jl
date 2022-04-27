@@ -65,7 +65,7 @@ end
 POMDPs.actions(mdp::CollisionAvoidanceMDP) = mdp.actions
 POMDPs.actionindex(mdp::CollisionAvoidanceMDP, a) = findfirst(mdp.actions .== a)
 
-disturbanceindex(mdp::CollisionAvoidanceMDP, x) = findfirst(mdp.mdp.px.support .== x)
+disturbanceindex(mdp::CollisionAvoidanceMDP, x) = findfirst(mdp.px.support .== x)
 disturbances(mdp::CollisionAvoidanceMDP) = mdp.px.support
 
 function isfailure(mdp::CollisionAvoidanceMDP, s)
