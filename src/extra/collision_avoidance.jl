@@ -28,13 +28,13 @@ function POMDPs.transition(mdp::CollisionAvoidanceMDP, s, a, rng::AbstractRNG = 
 
     # Update the dynamics
     h = h + dh
-    if a != 0.0
-       if abs(a - dh) < mdp.ddh_max
-           dh += a
-       else
-           dh += sign(a - dh)*mdp.ddh_max
-       end
+    # if a != 0.0
+    if abs(a - dh) < mdp.ddh_max
+       dh += a - dh
+    else
+       dh += sign(a - dh)*mdp.ddh_max
     end
+    # end
     a_prev = a
     τ = max(τ - 1.0, -1.0)
     SparseCat([Float32[h, dh+x, a_prev, τ] for x in mdp.px.support], mdp.px.p)
@@ -65,7 +65,7 @@ end
 POMDPs.actions(mdp::CollisionAvoidanceMDP) = mdp.actions
 POMDPs.actionindex(mdp::CollisionAvoidanceMDP, a) = findfirst(mdp.actions .== a)
 
-disturbanceindex(mdp::CollisionAvoidanceMDP, x) = findfirst(mdp.mdp.px.support .== x)
+disturbanceindex(mdp::CollisionAvoidanceMDP, x) = findfirst(mdp.px.support .== x)
 disturbances(mdp::CollisionAvoidanceMDP) = mdp.px.support
 
 function isfailure(mdp::CollisionAvoidanceMDP, s)

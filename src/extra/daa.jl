@@ -24,13 +24,13 @@ function POMDPs.transition(mdp::DetectAndAvoidMDP, s, a, x, rng::AbstractRNG=Ran
 
     # Update the dynamics
     h = h + dh
-    if a != 0.0
-        if abs(a - dh) < mdp.ddh_max
-            dh += a
-        else
-            dh += sign(a - dh) * mdp.ddh_max
-        end
+    #if a != 0.0
+    if abs(a - dh) < mdp.ddh_max
+        dh += a - dh
+    else
+        dh += sign(a - dh) * mdp.ddh_max
     end
+    #end
     a_prev = a
     τ = max(τ - 1.0, -1.0)
     SparseCat([Float32[h, dh+x, a_prev, τ] for x in mdp.px.support], mdp.px.p)
@@ -61,7 +61,7 @@ end
 POMDPs.actions(mdp::DetectAndAvoidMDP) = mdp.actions
 POMDPs.actionindex(mdp::DetectAndAvoidMDP, a) = findfirst(mdp.actions .== a)
 
-disturbanceindex(mdp::DetectAndAvoidMDP, x) = findfirst(mdp.mdp.px.support .== x)
+disturbanceindex(mdp::DetectAndAvoidMDP, x) = findfirst(mdp.px.support .== x)
 disturbances(mdp::DetectAndAvoidMDP) = mdp.px.support
 
 function isfailure(mdp::DetectAndAvoidMDP, s)
