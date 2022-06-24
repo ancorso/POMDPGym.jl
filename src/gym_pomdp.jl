@@ -33,16 +33,9 @@ POMDPs.actions(mdp::GymPOMDP) = mdp.actions
 POMDPs.actionindex(mdp::GymPOMDP, a) = a
 
 function POMDPs.isterminal(mdp::GymPOMDP, s)
-    try
-        mdp.env.pyenv._elapsed_steps >= mdp.env.pyenv._max_episode_steps && return false
-    catch
-        try
-            mdp.env.pyenv.num_steps >= mdp.env.pyenv.steps && return false
-        catch
-            return mdp.env.done
-        end
-    end
+    return mdp.env.done
 end
+
 POMDPs.discount(mdp::GymPOMDP) = mdp.γ
 
 function POMDPs.observation(mdp::GymPOMDP, s)
@@ -77,6 +70,24 @@ function aggregate_info!(infos, info)
         info[k] =  mean([i[k] for i in filter((x)->haskey(x, k), infos)])
     end
 end
+
+function check_exceeds_steps(mdp)
+    if hasproperty(mdp.env.pyenv, :_elapsed_steps)
+        if mdp.env.pyenv._elapsed_steps >= mdp.env.pyenv._max_episode_steps
+            @error "Exceeded timesteps"
+        else
+            return
+        end
+    elseif hasproperty(mdp.env.pyenv, :num_steps)
+        if mdp.env.pyenv.num_steps >= mdp.env.pyenv.steps
+            @error "Exceeded timesteps"
+        else
+            return
+        end
+    else
+        @error "Couldn't determine if max steps reached"
+    end
+end
     
 function POMDPs.gen(mdp::GymPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
     @assert s == mdp.env.state
@@ -85,6 +96,7 @@ function POMDPs.gen(mdp::GymPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; i
     infos = []
     for i=1:mdp.frame_stack
         r, sp, ret_info = step!(mdp.env, a_py)
+        check_exceeds_steps(mdp)
         o = rand(rng, observation(mdp, sp))
         rtot += r
         push!(os, o)
