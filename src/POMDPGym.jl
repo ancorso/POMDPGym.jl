@@ -1,9 +1,8 @@
 module POMDPGym
 using POMDPs
 using POMDPModels
-import POMDPModelTools: render
-using POMDPModelTools
-using POMDPPolicies
+import POMDPTools: render
+using POMDPTools
 using PyCall
 import PyCall: hasproperty
 using Parameters
@@ -17,7 +16,6 @@ using Compose
 using StaticArrays
 using LinearAlgebra
 using GridInterpolations
-using BeliefUpdaters
 
 include("pycalls.jl")
 
