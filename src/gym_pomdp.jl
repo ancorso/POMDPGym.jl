@@ -73,14 +73,14 @@ end
 
 function check_exceeds_steps(mdp)
     if hasproperty(mdp.env.pyenv, :_elapsed_steps)
-        if mdp.env.pyenv._elapsed_steps >= mdp.env.pyenv._max_episode_steps
-            @error "Exceeded timesteps"
+        if mdp.env.pyenv._elapsed_steps > mdp.env.pyenv._max_episode_steps
+            @error "Exceeded timesteps $(mdp.env.pyenv._elapsed_steps) / $(mdp.env.pyenv._max_episode_steps)"
         else
             return
         end
     elseif hasproperty(mdp.env.pyenv, :num_steps)
         if mdp.env.pyenv.num_steps >= mdp.env.pyenv.steps
-            @error "Exceeded timesteps"
+            @error "Exceeded timesteps $(mdp.env.pyenv.num_steps) / $(mdp.env.pyenv.steps)"
         else
             return
         end

@@ -30,7 +30,7 @@ export GridWorldMDP, GWPos, LavaWorldMDP, PendulumMDP, PendulumPOMDP, InvertedPe
     CollisionAvoidanceMDP, OptimalCollisionAvoidancePolicy, EpisodicSafetyGym,
     DetectAndAvoidMDP, OptimalDetectAndAvoidPolicy,
     CartPoleMDP, SequenceMDP, SequencePOMDP, CostMod, CostModMDP, CostModPOMDP, RMDP, RPOMDP,
-    InfoCollectorPOMDP, InfoCollectorMDP, InfoCollector, clear_dataset, ZWrapper, ZWrap, NoisyMDP
+    InfoCollectorPOMDP, InfoCollectorMDP, InfoCollector, clear_dataset, ZWrapper, ZWrap, NoisyMDP, NoisyPOMDP
 include("extra/gridworld.jl")
 include("extra/lavaworld.jl")
 include("extra/pendulum.jl")
