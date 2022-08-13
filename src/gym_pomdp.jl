@@ -57,7 +57,7 @@ function init_mujoco_render()
 end
 
 function render(mdp::GymPOMDP, s, a = nothing; kwargs...)
-    @assert s == mdp.env.state
+    @assert Float32.(s) == Float32.(mdp.env.state)
     render(mdp; kwargs...)
 end
 
@@ -90,7 +90,7 @@ function check_exceeds_steps(mdp)
 end
     
 function POMDPs.gen(mdp::GymPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
-    @assert s == mdp.env.state
+    @assert Float32.(s) == Float32.(mdp.env.state)
     a_py = (a isa Int) ? a - 1 : a # Python indexes from 0
     rtot, os, sp = 0, [], nothing
     infos = []
