@@ -85,7 +85,7 @@ function check_exceeds_steps(mdp)
             return
         end
     else
-        @error "Couldn't determine if max steps reached"
+        return
     end
 end
     
