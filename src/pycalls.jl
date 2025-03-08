@@ -135,8 +135,9 @@ function step!(env::GymEnv, a)
     pyact = pyaction(a)
     pycall!(env.pystepres, env.pystep, PyObject, pyact)
 
-    env.pystate, r, env.done, truncated, env.info = # Newer Gym/Gymnasium added `truncated`
+    env.pystate, r, done, truncated, env.info = # Newer Gym/Gymnasium added `truncated`
         convert(Tuple{PyObject, Float64, Bool, Bool, PyObject}, env.pystepres)
+    env.done = done || truncated
 
     convert_state!(env)
 
