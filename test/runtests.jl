@@ -1,4 +1,6 @@
+import Pkg
 ENV["PYTHON"] = "" # Force the use of Python from Conda.jl
+Pkg.build("PyCall")
 include("gym_tests.jl")
 # include("atari_tests.jl")
 include("gridworld_tests.jl")
