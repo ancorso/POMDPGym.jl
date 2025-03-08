@@ -126,14 +126,14 @@ function gen_occupancy(buffer, mdp)
 end
 
 function render(mdp::LavaWorld, s=GWPos(7,5), a=nothing; color = s->10.0*POMDPs.reward(mdp, s), policy= nothing, return_compose = false)
-    img = POMDPModelTools.render(mdp.gridworld, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))[1]))
+    img = POMDPTools.render(mdp.gridworld, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))[1]))
     return_compose && return img
     tmpfilename = "/tmp/out.png"
     img |> PNG(tmpfilename, 1cm .* mdp.gridworld.size...)
     load(tmpfilename)
 end
 
-# render_and_save(filename, g::MDP...) = hcat_and_save(filename,  [POMDPModelTools.render(gi) for gi in g]...)
+# render_and_save(filename, g::MDP...) = hcat_and_save(filename,  [POMDPTools.render(gi) for gi in g]...)
 # 
 # function hcat_and_save(filename, c::Context...)
 #     set_default_graphic_size(35cm,10cm)

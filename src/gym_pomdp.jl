@@ -19,8 +19,8 @@ function GymPOMDP(env::GymEnv; pixel_observations = false,
     GymPOMDP(env, pixel_observations, γ, actions, special_render, sign_reward, frame_stack, frame_stack_dim)
 end
 
-function GymPOMDP(environment::Symbol; version::Symbol = :v0, kwargs...)
-    env = GymEnv(environment, version; kwargs...)
+function GymPOMDP(environment::Symbol; version::Symbol = :v1, render_mode = "rgb_array", kwargs...)
+    env = GymEnv(environment, version, render_mode, kwargs...)
     GymPOMDP(env; kwargs...)
 end
 
@@ -42,7 +42,7 @@ function POMDPs.observation(mdp::GymPOMDP, s)
     if mdp.pixel_observations
         o = isnothing(mdp.special_render) ? permutedims(Float32.(channelview(render(mdp))), [2,3,1]) : mdp.special_render(s)
     else
-        o = Float32.(s)
+        o = convert(Array{Float32}, s)
     end
     Deterministic(o)
 end
@@ -61,7 +61,7 @@ function render(mdp::GymPOMDP, s, a = nothing; kwargs...)
     render(mdp; kwargs...)
 end
 
-render(mdp::GymPOMDP; kwargs...) = torgb(render(mdp.env; mode=:rgb_array, kwargs...))
+render(mdp::GymPOMDP; kwargs...) = torgb(render(mdp.env; kwargs...))
 
 stack_obs(mdp, os) = length(os) == 1 ? os[1] : cat(os..., dims = mdp.frame_stack_dim)
 
@@ -90,7 +90,7 @@ function check_exceeds_steps(mdp)
 end
     
 function POMDPs.gen(mdp::GymPOMDP, s, a, rng::AbstractRNG = Random.GLOBAL_RNG; info=Dict())
-    @assert Float32.(s) == Float32.(mdp.env.state)
+@assert Float32.(s) == convert(Array{Float32}, mdp.env.state)
     a_py = (a isa Int) ? a - 1 : a # Python indexes from 0
     rtot, os, sp = 0, [], nothing
     infos = []
