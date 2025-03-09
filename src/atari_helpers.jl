@@ -5,5 +5,5 @@ function preproc_atari_frame(s)
     reshape(v, size(v)..., 1, 1)
 end
 
-AtariPOMDP(environment; version = :v0, frame_stack = 4) = GymPOMDP(environment, version = version, frame_stack = frame_stack, pixel_observations = true, special_render = preproc_atari_frame, sign_reward = true)
+AtariPOMDP(environment; version = :v0, frame_stack = 4) = GymPOMDP(GymPOMDP(environment, version = version).env, frame_stack = frame_stack, pixel_observations = true, special_render = preproc_atari_frame, sign_reward = true)
 
