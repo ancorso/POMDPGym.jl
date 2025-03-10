@@ -26,20 +26,18 @@ end
 
 use_pyarray_state(envname::Symbol) = !(envname ∈ (:Blackjack,))
 
-function GymEnv(name::Symbol, ver::Symbol = :v0;
-                stateT = ifelse(use_pyarray_state(name), PyArray, PyAny), kwargs...)
-    if PyCall.ispynull(pysoccer) && name ∈ (:Soccer, :SoccerEmptyGoal)
-        copy!(pysoccer, pyimport("gym_soccer"))
-    end
-
-    GymEnv(name, ver, pygym.make("$name-$ver"; kwargs...), stateT)
+function GymEnv(name::Symbol, ver::Symbol = :v0, render_mode = "rgb_array";
+                stateT = ifelse(use_pyarray_state(name), Array{Float32}, Any), kwargs...) # Current version of PyCall seems to do some automatic conversion, so no need to use `PyArray` instead of Julia `Array`
+    # PySoccer-related code has been deleted
+    GymEnv(name, ver, pygym.make("$name-$ver", render_mode = render_mode; kwargs...), stateT)
 end
 
 GymEnv(name::AbstractString; kwargs...) =
     GymEnv(Symbol.(split(name, '-', limit = 2))...; kwargs...)
 
 function GymEnv(name::Symbol, ver::Symbol, pyenv, stateT)
-    pystate = pycall(pyenv."reset", PyObject)
+    pystate = pycall(pyenv."reset", PyObject)[1] # Change from earlier version of Gym: a tuple with additional
+    # information is returned, so we take `[1]` to get the actual state
     state = convert(stateT, pystate)
     T = typeof(state)
     GymEnv{T}(name, ver, pyenv, pystate, state)
@@ -78,7 +76,7 @@ render(env::GymEnv, args...; kwargs...) =
 function actionset(A::PyObject)
     if hasproperty(A, :n)
         # choose from n actions
-		collect(1:A.n)
+		collect(1:convert(Int, A.n))
         # DiscreteSet(0:A.n-1)
     elseif hasproperty(A, :spaces)
         # a tuple of action sets
@@ -113,6 +111,8 @@ pyaction(a) = a
 """
 function reset!(env::GymEnv)
     pycall!(env.pystate, env.pyreset, PyObject)
+    env.pystate = env.pystate[1] # Change from earlier version of Gym: a tuple with additional
+    # information is returned, so we take `[1]` to get the actual state
     convert_state!(env)
     env.reward = 0.0
     env.total_reward = 0.0
@@ -135,8 +135,9 @@ function step!(env::GymEnv, a)
     pyact = pyaction(a)
     pycall!(env.pystepres, env.pystep, PyObject, pyact)
 
-    env.pystate, r, env.done, env.info =
-        convert(Tuple{PyObject, Float64, Bool, PyObject}, env.pystepres)
+    env.pystate, r, done, truncated, env.info = # Newer Gym/Gymnasium added `truncated`
+        convert(Tuple{PyObject, Float64, Bool, Bool, PyObject}, env.pystepres)
+    env.done = done || truncated
 
     convert_state!(env)
 
@@ -162,5 +163,5 @@ const pysoccer = PyNULL()
 
 function __init__()
     # the copy! puts the gym module into `pygym`, handling python ref-counting
-    copy!(pygym, pyimport("gym"))
+    copy!(pygym, pyimport("gymnasium"))
 end

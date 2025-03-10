@@ -59,7 +59,7 @@ POMDPs.states(mdp::GridWorldMDP) = states(mdp.g)
 POMDPs.stateindex(mdp::GridWorldMDP, s) = stateindex(mdp.g, s)
 
 function render(mdp::GridWorldMDP, s=GWPos(7,5), a=nothing; color = s->10.0*POMDPs.reward(mdp.g, s), policy= nothing, kwargs...)
-    img = POMDPModelTools.render(mdp.g, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))); kwargs...)
+    img = POMDPTools.render(mdp.g, (s = s,), color = color, policy = isnothing(policy) ? nothing : FunctionPolicy((s) ->  action(policy, convert_s(AbstractArray, s, mdp))); kwargs...)
     tmpfilename = "/tmp/out.png"
     img |> PNG(tmpfilename, 1cm .* mdp.g.size...)
     load(tmpfilename)
