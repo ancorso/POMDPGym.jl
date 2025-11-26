@@ -3,8 +3,12 @@ Wrapper for <a href="https://gymnasium.farama.org/">Gymnasium</a> environments f
 
 ## Installation
 
-* Install this package by opening julia and running `]add https://github.com/ancorso/POMDPGym.jl`.
-* The Python dependencies <a href="https://gymnasium.farama.org/">gymnasium</a> and `pygame` will be automatically installed during the build step of this package.
+* Install <a href="https://github.com/JuliaPy/PyCall.jl">PyCall.jl</a> for julia
+  * `using Pkg; Pkg.add("PyCall")` 
+* Install <a href="https://gym.openai.com/docs/">OpenAI gym</a> in the same version of python used by `PyCall.jl`
+  * `using Pkg; Pkg.add("Conda"); using Conda; Conda.add("gymnasium")` 
+* (Optional) Install <a href="http://www.mujoco.org/">MuJoCo</a>
+* Install this package by opening julia and running `]add https://github.com/ancorso/POMDPGym.jl`
 
 ### Atari and other environments
 Currently, the automatic installation using `Conda.jl` does not install the Atari environments of Gymnasium. To do this, install Atari environments in a custom Python environment manually and ask `PyCall.jl` to use it. To elaborate, create a new Python virtual environment and run

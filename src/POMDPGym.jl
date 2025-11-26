@@ -1,5 +1,7 @@
 module POMDPGym
-using POMDPs
+
+using Reexport
+@reexport using POMDPs
 using POMDPModels
 import POMDPTools: render
 using POMDPTools

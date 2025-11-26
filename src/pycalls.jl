@@ -162,6 +162,6 @@ const pygym    = PyNULL()
 const pysoccer = PyNULL()
 
 function __init__()
-    # the copy! puts the gym module into `pygym`, handling python ref-counting
+    # the copy! puts the gymnasium module into `pygym`, handling python ref-counting
     copy!(pygym, pyimport("gymnasium"))
 end
